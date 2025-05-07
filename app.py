@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # =============================================
 # Gradio App for Chess Game Analysis - Lichess API Version
-# v17: OBSESSIVELY REWRITTEN categorize_time_control for syntax.
+# v18: Fixed empty chart visibility and chart sizing for mobile
 # =============================================
 
 import gradio as gr
@@ -32,17 +32,12 @@ TITLES_TO_ANALYZE = ['GM', 'IM', 'FM', 'CM', 'WGM', 'WIM', 'WFM', 'WCM', 'NM']
 # =============================================
 def categorize_time_control(tc_str, speed_info):
     """Categorizes time control based on speed info or parsed string."""
-    # 1. Prioritize speed info from API
     if isinstance(speed_info, str) and speed_info in ['bullet', 'blitz', 'rapid', 'classical', 'correspondence']:
         return speed_info.capitalize()
-
-    # 2. Handle invalid or special tc_str inputs
     if not isinstance(tc_str, str) or tc_str in ['-', '?', 'Unknown']:
         return 'Unknown'
     if tc_str == 'Correspondence':
         return 'Correspondence'
-
-    # 3. Handle format like "180+2"
     if '+' in tc_str:
         parts = tc_str.split('+')
         if len(parts) == 2:
@@ -60,8 +55,6 @@ def categorize_time_control(tc_str, speed_info):
                 return 'Unknown'
         else:
             return 'Unknown'
-
-    # 4. Handle format like "300" (only base time)
     else:
         try:
             base = int(tc_str)
@@ -100,12 +93,11 @@ except Exception as e:
 def load_from_lichess_api(username: str, time_period_key: str, perf_type: str, rated: bool, eco_map: dict, progress=None):
     if not username: return pd.DataFrame(), "⚠️ Enter username."
     if not perf_type: return pd.DataFrame(), "⚠️ Select game type."
-    # Safe handling of progress
     if progress is not None:
         try:
             progress(0, desc="Initializing...")
         except Exception:
-            pass  # Ignore progress errors if not properly initialized
+            pass
     username_lower = username.lower()
     status_message = f"Fetching {perf_type} games..."
     if progress is not None:
@@ -239,7 +231,7 @@ def plot_win_loss_pie(df, display_name):
     fig = px.pie(values=result_counts.values, names=result_counts.index, title=f'Overall Results for {display_name}',
                  color=result_counts.index, color_discrete_map={'Win': '#4CAF50', 'Draw': '#B0BEC5', 'Loss': '#F44336'}, hole=0.3)
     fig.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05 if x == 'Win' else 0 for x in result_counts.index])
-    fig.update_layout(dragmode=False)
+    fig.update_layout(dragmode=False, autosize=True, height=400, width=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_win_loss_by_color(df):
@@ -255,7 +247,7 @@ def plot_win_loss_by_color(df):
     fig = px.bar(color_results_pct, barmode='stack', title='Results by Color', labels={'value': '%', 'PlayerColor': 'Played As'},
                  color='PlayerResultString', color_discrete_map={'Win': '#4CAF50', 'Draw': '#B0BEC5', 'Loss': '#F44336'},
                  text_auto='.1f', category_orders={"PlayerColor": ["White", "Black"]})
-    fig.update_layout(yaxis_title="Percentage (%)", xaxis_title="Color Played", dragmode=False)
+    fig.update_layout(yaxis_title="Percentage (%)", xaxis_title="Color Played", dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     fig.update_traces(textangle=0)
     return fig
 
@@ -269,7 +261,7 @@ def plot_rating_trend(df, display_name):
     fig.add_trace(go.Scatter(x=df_sorted['Date'], y=df_sorted['PlayerElo'], mode='lines+markers', name='Elo',
                             line=dict(color='#1E88E5', width=2), marker=dict(size=5, opacity=0.7)))
     fig.update_layout(title=f'{display_name}\'s Rating Trend', xaxis_title='Date', yaxis_title='Elo Rating',
-                      hovermode="x unified", xaxis_rangeslider_visible=True, dragmode=False)
+                      hovermode="x unified", xaxis_rangeslider_visible=True, dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_performance_vs_opponent_elo(df):
@@ -280,7 +272,7 @@ def plot_performance_vs_opponent_elo(df):
                  color_discrete_map={'Win': '#4CAF50', 'Draw': '#B0BEC5', 'Loss': '#F44336'}, points='outliers')
     fig.add_hline(y=0, line_dash="dash", line_color="grey")
     fig.update_traces(marker=dict(opacity=0.8))
-    fig.update_layout(dragmode=False)
+    fig.update_layout(dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_games_by_dow(df):
@@ -290,7 +282,7 @@ def plot_games_by_dow(df):
     fig = px.bar(games_by_dow, x=games_by_dow.index, y=games_by_dow.values, title="Games by Day of Week",
                  labels={'x': 'Day', 'y': 'Games'}, text=games_by_dow.values)
     fig.update_traces(marker_color='#9C27B0', textposition='outside')
-    fig.update_layout(dragmode=False)
+    fig.update_layout(dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_winrate_by_dow(df):
@@ -303,7 +295,7 @@ def plot_winrate_by_dow(df):
     fig = px.bar(win_rate, x=win_rate.index, y=win_rate.values, title="Win Rate (%) by Day",
                  labels={'x': 'Day', 'y': 'Win Rate (%)'}, text=win_rate.values)
     fig.update_traces(marker_color='#FF9800', texttemplate='%{text:.1f}%', textposition='outside')
-    fig.update_layout(yaxis_range=[0, 100], dragmode=False)
+    fig.update_layout(yaxis_range=[0, 100], dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_games_by_hour(df):
@@ -312,7 +304,7 @@ def plot_games_by_hour(df):
     fig = px.bar(games_by_hour, x=games_by_hour.index, y=games_by_hour.values, title="Games by Hour (UTC)",
                  labels={'x': 'Hour', 'y': 'Games'}, text=games_by_hour.values)
     fig.update_traces(marker_color='#03A9F4', textposition='outside')
-    fig.update_layout(xaxis=dict(tickmode='linear'), dragmode=False)
+    fig.update_layout(xaxis=dict(tickmode='linear'), dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_winrate_by_hour(df):
@@ -324,7 +316,7 @@ def plot_winrate_by_hour(df):
     fig = px.line(win_rate, x=win_rate.index, y=win_rate.values, markers=True, title="Win Rate (%) by Hour (UTC)",
                   labels={'x': 'Hour', 'y': 'Win Rate (%)'})
     fig.update_traces(line_color='#8BC34A')
-    fig.update_layout(yaxis_range=[0, 100], xaxis=dict(tickmode='linear'), dragmode=False)
+    fig.update_layout(yaxis_range=[0, 100], xaxis=dict(tickmode='linear'), dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_games_per_year(df):
@@ -333,7 +325,7 @@ def plot_games_per_year(df):
     fig = px.bar(games_per_year, x=games_per_year.index, y=games_per_year.values, title='Games Per Year',
                  labels={'x': 'Year', 'y': 'Games'}, text=games_per_year.values)
     fig.update_traces(marker_color='#2196F3', textposition='outside')
-    fig.update_layout(xaxis_title="Year", yaxis_title="Number of Games", xaxis={'type': 'category'}, dragmode=False)
+    fig.update_layout(xaxis_title="Year", yaxis_title="Number of Games", xaxis={'type': 'category'}, dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_win_rate_per_year(df):
@@ -345,7 +337,7 @@ def plot_win_rate_per_year(df):
     fig = px.line(win_rate, x=win_rate.index, y=win_rate.values, title='Win Rate (%) Per Year', markers=True,
                   labels={'x': 'Year', 'y': 'Win Rate (%)'})
     fig.update_traces(line_color='#FFC107', line_width=2.5)
-    fig.update_layout(yaxis_range=[0, 100], dragmode=False)
+    fig.update_layout(yaxis_range=[0, 100], dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_performance_by_time_control(df):
@@ -363,7 +355,7 @@ def plot_performance_by_time_control(df):
         fig = px.bar(tc_results_pct, title='Performance by Time Control', labels={'value': '%', 'TimeControl_Category': 'Category'},
                      color='PlayerResultString', color_discrete_map={'Win': '#4CAF50', 'Draw': '#B0BEC5', 'Loss': '#F44336'},
                      barmode='group', text_auto='.1f')
-        fig.update_layout(xaxis_title="Time Control Category", yaxis_title="Percentage (%)", dragmode=False)
+        fig.update_layout(xaxis_title="Time Control Category", yaxis_title="Percentage (%)", dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
         fig.update_traces(textangle=0)
         return fig
     except Exception:
@@ -375,7 +367,7 @@ def plot_opening_frequency(df, top_n=20, opening_col='OpeningName_API'):
     opening_counts = df[df[opening_col] != 'Unknown Opening'][opening_col].value_counts().nlargest(top_n)
     fig = px.bar(opening_counts, y=opening_counts.index, x=opening_counts.values, orientation='h',
                  title=f'Top {top_n} Openings ({source_label})', labels={'y': 'Opening', 'x': 'Games'}, text=opening_counts.values)
-    fig.update_layout(yaxis={'categoryorder': 'total ascending'}, dragmode=False)
+    fig.update_layout(yaxis={'categoryorder': 'total ascending'}, dragmode=False, autosize=True, height=500, margin=dict(l=20, r=20, t=50, b=20))
     fig.update_traces(marker_color='#673AB7', textposition='outside')
     return fig
 
@@ -392,7 +384,7 @@ def plot_win_rate_by_opening(df, min_games=5, top_n=20, opening_col='OpeningName
                  title=f'Top {top_n} Openings by Win Rate (Min {min_games} games, {source_label})',
                  labels={'win_rate': 'Win Rate (%)', opening_col: 'Opening'}, text='win_rate')
     fig.update_traces(texttemplate='%{text:.1f}%', textposition='inside', marker_color='#009688')
-    fig.update_layout(yaxis={'categoryorder': 'total ascending'}, xaxis_title="Win Rate (%)", dragmode=False)
+    fig.update_layout(yaxis={'categoryorder': 'total ascending'}, xaxis_title="Win Rate (%)", dragmode=False, autosize=True, height=500, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_most_frequent_opponents(df, top_n=20):
@@ -400,7 +392,7 @@ def plot_most_frequent_opponents(df, top_n=20):
     opp_counts = df[df['OpponentName'] != 'Unknown']['OpponentName'].value_counts().nlargest(top_n)
     fig = px.bar(opp_counts, y=opp_counts.index, x=opp_counts.values, orientation='h',
                  title=f'Top {top_n} Opponents', labels={'y': 'Opponent', 'x': 'Games'}, text=opp_counts.values)
-    fig.update_layout(yaxis={'categoryorder': 'total ascending'}, dragmode=False)
+    fig.update_layout(yaxis={'categoryorder': 'total ascending'}, dragmode=False, autosize=True, height=500, margin=dict(l=20, r=20, t=50, b=20))
     fig.update_traces(marker_color='#FF5722', textposition='outside')
     return fig
 
@@ -410,7 +402,7 @@ def plot_games_by_dom(df):
     fig = px.bar(games_by_dom, x=games_by_dom.index, y=games_by_dom.values, title="Games Played per Day of Month",
                  labels={'x': 'Day of Month', 'y': 'Number of Games'}, text=games_by_dom.values)
     fig.update_traces(marker_color='#E91E63', textposition='outside')
-    fig.update_layout(xaxis=dict(tickmode='linear'), dragmode=False)
+    fig.update_layout(xaxis=dict(tickmode='linear'), dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_winrate_by_dom(df):
@@ -422,7 +414,7 @@ def plot_winrate_by_dom(df):
     fig = px.line(win_rate, x=win_rate.index, y=win_rate.values, markers=True, title="Win Rate (%) per Day of Month",
                   labels={'x': 'Day of Month', 'y': 'Win Rate (%)'})
     fig.update_traces(line_color='#FF5722')
-    fig.update_layout(yaxis_range=[0, 100], xaxis=dict(tickmode='linear'), dragmode=False)
+    fig.update_layout(yaxis_range=[0, 100], xaxis=dict(tickmode='linear'), dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     return fig
 
 def plot_time_forfeit_summary(wins_tf, losses_tf):
@@ -430,7 +422,7 @@ def plot_time_forfeit_summary(wins_tf, losses_tf):
     df_tf = pd.DataFrame(data)
     fig = px.bar(df_tf, x='Outcome', y='Count', title="Time Forfeit Summary", color='Outcome',
                  color_discrete_map={'Won on Time': '#4CAF50', 'Lost on Time': '#F44336'}, text='Count')
-    fig.update_layout(showlegend=False, dragmode=False)
+    fig.update_layout(showlegend=False, dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     fig.update_traces(textposition='outside')
     return fig
 
@@ -439,7 +431,7 @@ def plot_time_forfeit_by_tc(tf_games_df):
     tf_by_tc = tf_games_df['TimeControl_Category'].value_counts()
     fig = px.bar(tf_by_tc, x=tf_by_tc.index, y=tf_by_tc.values, title="Time Forfeits by Time Control",
                  labels={'x': 'Category', 'y': 'Forfeits'}, text=tf_by_tc.values)
-    fig.update_layout(dragmode=False)
+    fig.update_layout(dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
     fig.update_traces(marker_color='#795548', textposition='outside')
     return fig
 
@@ -464,9 +456,9 @@ def filter_and_analyze_time_forfeits(df):
 # =============================================
 def perform_full_analysis(username, time_period_key, perf_type, selected_titles_list, progress=gr.Progress(track_tqdm=True)):
     df, status_msg = load_from_lichess_api(username, time_period_key, perf_type, DEFAULT_RATED_ONLY, ECO_MAPPING, progress)
-    num_outputs = 33  # Adjusted to match the actual number of outputs
+    num_outputs = 34  # Adjusted for visibility state
     if not isinstance(df, pd.DataFrame) or df.empty:
-        return status_msg, pd.DataFrame(), *([None] * (num_outputs - 2))
+        return status_msg, pd.DataFrame(), False, *([None] * (num_outputs - 3))
     try:
         fig_pie = plot_win_loss_pie(df, username)
         fig_color = plot_win_loss_by_color(df)
@@ -478,7 +470,6 @@ def perform_full_analysis(username, time_period_key, perf_type, selected_titles_
         d = len(df[df['PlayerResultNumeric'] == 0.5])
         wr = (w / total_g * 100) if total_g > 0 else 0
         avg_opp = df['OpponentElo'].mean()
-        # Fixed formatting issue
         avg_opp_display = f"{avg_opp:.0f}" if not pd.isna(avg_opp) else 'N/A'
         overview_stats_md = f"**Total:** {total_g:,} | **WR:** {wr:.1f}% | **W/L/D:** {w}/{l}/{d} | **Avg Opp:** {avg_opp_display}"
         fig_games_yr = plot_games_per_year(df)
@@ -504,7 +495,7 @@ def perform_full_analysis(username, time_period_key, perf_type, selected_titles_
         term_counts = df['Termination'].value_counts()
         fig_term_all = px.bar(term_counts, x=term_counts.index, y=term_counts.values, title="Overall Termination Reasons",
                               labels={'x': 'Reason', 'y': 'Count'}, text=term_counts.values)
-        fig_term_all.update_layout(dragmode=False)
+        fig_term_all.update_layout(dragmode=False, autosize=True, height=400, margin=dict(l=20, r=20, t=50, b=20))
         fig_term_all.update_traces(textposition='outside')
         titled_status_msg = ""
         fig_titled_pie, fig_titled_color, fig_titled_rating, df_titled_h2h = go.Figure(), go.Figure(), go.Figure(), pd.DataFrame()
@@ -525,22 +516,35 @@ def perform_full_analysis(username, time_period_key, perf_type, selected_titles_
                 titled_status_msg = f"ℹ️ No games found vs selected titles ({', '.join(selected_titles_list)})."
         else:
             titled_status_msg = "ℹ️ Select titles from the sidebar to analyze."
-        return (status_msg, df, fig_pie, overview_stats_md, fig_color, fig_rating, fig_elo_diff, fig_games_yr, fig_wr_yr,
+        return (status_msg, df, True, fig_pie, overview_stats_md, fig_color, fig_rating, fig_elo_diff, fig_games_yr, fig_wr_yr,
                 "(Results by color shown in Overview)", fig_games_dow, fig_wr_dow, fig_games_hod, fig_wr_hod, fig_games_dom,
                 fig_wr_dom, fig_perf_tc, fig_open_freq_api, fig_open_wr_api, fig_open_freq_cust, fig_open_wr_cust,
                 fig_opp_freq, df_opp_list, fig_opp_elo, titled_status_msg, fig_titled_pie, fig_titled_color, fig_titled_rating,
                 df_titled_h2h, fig_tf_summary, fig_tf_tc, df_tf_list, fig_term_all)
     except Exception as e:
         error_msg = f"🚨 Error generating results: {e}\n{traceback.format_exc()}"
-        return error_msg, pd.DataFrame(), *([None] * (num_outputs - 2))
+        return error_msg, pd.DataFrame(), False, *([None] * (num_outputs - 3))
 
 # =============================================
 # Gradio Interface Definition
 # =============================================
-css = """.gradio-container { font-family: 'IBM Plex Sans', sans-serif; } footer { display: none !important; }"""
+css = """
+.gradio-container { font-family: 'IBM Plex Sans', sans-serif; }
+footer { display: none !important; }
+/* Responsive adjustments for plots */
+.gr-plot { min-width: 100% !important; }
+@media (max-width: 768px) {
+    .gr-row { flex-direction: column !important; }
+    .gr-plot { height: 350px !important; margin-bottom: 20px !important; }
+}
+@media (min-width: 769px) {
+    .gr-plot { height: 400px !important; }
+}
+"""
 with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
     gr.Markdown("# ♟️ Lichess Insights\nAnalyze rated game statistics from Lichess API.")
     df_state = gr.State(pd.DataFrame())
+    has_data = gr.State(False)  # State to track if data is available
     with gr.Row():
         with gr.Column(scale=1, min_width=250):  # Sidebar
             gr.Markdown("## ⚙️ Settings")
@@ -556,70 +560,110 @@ with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
         with gr.Column(scale=4):  # Main Content
             with gr.Tabs() as tabs:
                 with gr.TabItem("1. Overview", id=0):
-                    overview_stats_md_out = gr.Markdown()
-                    with gr.Row():
+                    overview_stats_md_out = gr.Markdown(visible=False)
+                    with gr.Row(visible=False) as overview_row:
                         overview_plot_pie = gr.Plot(label="Overall Results")
                         overview_plot_color = gr.Plot(label="Results by Color")
                         overview_plot_rating = gr.Plot(label="Rating Trend")
                         overview_plot_elo_diff = gr.Plot(label="Elo Advantage vs. Result")
                 with gr.TabItem("2. Perf. Over Time", id=1):
-                    time_plot_games_yr = gr.Plot(label="Games per Year")
-                    time_plot_wr_yr = gr.Plot(label="Win Rate per Year")
+                    with gr.Row(visible=False) as perf_time_row:
+                        time_plot_games_yr = gr.Plot(label="Games per Year")
+                        time_plot_wr_yr = gr.Plot(label="Win Rate per Year")
                 with gr.TabItem("3. Perf. by Color", id=2):
-                    color_plot_placeholder = gr.Markdown("(Results by color shown in Overview)")
+                    color_plot_placeholder = gr.Markdown("(Results by color shown in Overview)", visible=False)
                 with gr.TabItem("4. Time & Date", id=3):
                     gr.Markdown("### Day of Week")
-                    with gr.Row():
+                    with gr.Row(visible=False) as dow_row:
                         time_plot_games_dow = gr.Plot(label="Games by Day of Week")
                         time_plot_wr_dow = gr.Plot(label="Win Rate by Day of Week")
                     gr.Markdown("### Hour of Day (UTC)")
-                    with gr.Row():
+                    with gr.Row(visible=False) as hod_row:
                         time_plot_games_hod = gr.Plot(label="Games by Hour (UTC)")
                         time_plot_wr_hod = gr.Plot(label="Win Rate by Hour (UTC)")
                     gr.Markdown("### Day of Month")
-                    with gr.Row():
+                    with gr.Row(visible=False) as dom_row:
                         time_plot_games_dom = gr.Plot(label="Games by Day of Month")
                         time_plot_wr_dom = gr.Plot(label="Win Rate by Day of Month")
                     gr.Markdown("### Time Control Category")
-                    time_plot_perf_tc = gr.Plot(label="Performance by Time Control")
+                    time_plot_perf_tc = gr.Plot(label="Performance by Time Control", visible=False)
                 with gr.TabItem("5. ECO & Openings", id=4):
                     gr.Markdown("#### API Names")
-                    eco_plot_freq_api = gr.Plot(label="Opening Frequency (API)")
-                    eco_plot_wr_api = gr.Plot(label="Opening Win Rate (API)")
+                    eco_plot_freq_api = gr.Plot(label="Opening Frequency (API)", visible=False)
+                    eco_plot_wr_api = gr.Plot(label="Opening Win Rate (API)", visible=False)
                     gr.Markdown("---")
                     gr.Markdown("#### Custom Map")
                     if not ECO_MAPPING:
                         gr.Markdown("⚠️ Custom map not loaded.")
-                    eco_plot_freq_cust = gr.Plot(label="Opening Frequency (Custom)")
-                    eco_plot_wr_cust = gr.Plot(label="Opening Win Rate (Custom)")
+                    eco_plot_freq_cust = gr.Plot(label="Opening Frequency (Custom)", visible=False)
+                    eco_plot_wr_cust = gr.Plot(label="Opening Win Rate (Custom)", visible=False)
                 with gr.TabItem("6. Opponents", id=5):
-                    opp_plot_freq = gr.Plot(label="Frequent Opponents")
-                    opp_df_list = gr.DataFrame(label="Top Opponents List", wrap=True)
-                    opp_plot_elo = gr.Plot(label="Elo Advantage vs Result")
+                    opp_plot_freq = gr.Plot(label="Frequent Opponents", visible=False)
+                    opp_df_list = gr.DataFrame(label="Top Opponents List", wrap=True, visible=False)
+                    opp_plot_elo = gr.Plot(label="Elo Advantage vs Result", visible=False)
                 with gr.TabItem("7. vs Titled", id=6):
                     gr.Markdown("Analysis based on sidebar selection.")
-                    titled_status = gr.Markdown()
-                    with gr.Row():
+                    titled_status = gr.Markdown(visible=False)
+                    with gr.Row(visible=False) as titled_row:
                         titled_plot_pie = gr.Plot(label="Results vs Selected Titles")
                         titled_plot_color = gr.Plot(label="Results by Color vs Selected Titles")
                         titled_plot_rating = gr.Plot(label="Rating Trend vs Selected Titles")
-                    titled_df_h2h_comp = gr.DataFrame(label="Head-to-Head vs Selected Titles", wrap=True)
+                    titled_df_h2h_comp = gr.DataFrame(label="Head-to-Head vs Selected Titles", wrap=True, visible=False)
                 with gr.TabItem("8. Termination", id=7):
                     gr.Markdown("### Time Forfeit")
-                    term_plot_tf_summary = gr.Plot(label="Time Forfeit Summary")
-                    term_plot_tf_tc = gr.Plot(label="Time Forfeits by Time Control")
+                    term_plot_tf_summary = gr.Plot(label="Time Forfeit Summary", visible=False)
+                    term_plot_tf_tc = gr.Plot(label="Time Forfeits by Time Control", visible=False)
                     with gr.Accordion("View Recent TF Games", open=False):
-                        term_df_tf_list = gr.DataFrame(label="Recent TF Games", wrap=True)
+                        term_df_tf_list = gr.DataFrame(label="Recent TF Games", wrap=True, visible=False)
                     gr.Markdown("### Overall Termination")
-                    term_plot_all = gr.Plot(label="Overall Termination")
-    outputs_list = [status_output, df_state, overview_plot_pie, overview_stats_md_out, overview_plot_color, overview_plot_rating,
-                    overview_plot_elo_diff, time_plot_games_yr, time_plot_wr_yr, color_plot_placeholder, time_plot_games_dow,
-                    time_plot_wr_dow, time_plot_games_hod, time_plot_wr_hod, time_plot_games_dom, time_plot_wr_dom,
-                    time_plot_perf_tc, eco_plot_freq_api, eco_plot_wr_api, eco_plot_freq_cust, eco_plot_wr_cust, opp_plot_freq,
-                    opp_df_list, opp_plot_elo, titled_status, titled_plot_pie, titled_plot_color, titled_plot_rating,
-                    titled_df_h2h_comp, term_plot_tf_summary, term_plot_tf_tc, term_df_tf_list, term_plot_all]
-    analyze_btn.click(fn=perform_full_analysis, inputs=[username_input, time_period_input, perf_type_input, titled_player_select],
-                      outputs=outputs_list)
+                    term_plot_all = gr.Plot(label="Overall Termination", visible=False)
+    
+    # Define visibility updates based on has_data
+    def update_visibility(has_data_value, *args):
+        visibility = has_data_value
+        return (
+            gr.update(visible=visibility),  # overview_stats_md_out
+            gr.update(visible=visibility),  # overview_row
+            gr.update(visible=visibility),  # perf_time_row
+            gr.update(visible=visibility),  # color_plot_placeholder
+            gr.update(visible=visibility),  # dow_row
+            gr.update(visible=visibility),  # hod_row
+            gr.update(visible=visibility),  # dom_row
+            gr.update(visible=visibility),  # time_plot_perf_tc
+            gr.update(visible=visibility),  # eco_plot_freq_api
+            gr.update(visible=visibility),  # eco_plot_wr_api
+            gr.update(visible=visibility),  # eco_plot_freq_cust
+            gr.update(visible=visibility),  # eco_plot_wr_cust
+            gr.update(visible=visibility),  # opp_plot_freq
+            gr.update(visible=visibility),  # opp_df_list
+            gr.update(visible=visibility),  # opp_plot_elo
+            gr.update(visible=visibility),  # titled_status
+            gr.update(visible=visibility),  # titled_row
+            gr.update(visible=visibility),  # titled_df_h2h_comp
+            gr.update(visible=visibility),  # term_plot_tf_summary
+            gr.update(visible=visibility),  # term_plot_tf_tc
+            gr.update(visible=visibility),  # term_df_tf_list
+            gr.update(visible=visibility),  # term_plot_all
+        )
+
+    outputs_list = [
+        status_output, df_state, has_data, 
+        overview_plot_pie, overview_stats_md_out, overview_plot_color, overview_plot_rating, overview_plot_elo_diff,
+        time_plot_games_yr, time_plot_wr_yr, color_plot_placeholder, time_plot_games_dow, time_plot_wr_dow,
+        time_plot_games_hod, time_plot_wr_hod, time_plot_games_dom, time_plot_wr_dom, time_plot_perf_tc,
+        eco_plot_freq_api, eco_plot_wr_api, eco_plot_freq_cust, eco_plot_wr_cust, opp_plot_freq, opp_df_list,
+        opp_plot_elo, titled_status, titled_plot_pie, titled_plot_color, titled_plot_rating, titled_df_h2h_comp,
+        term_plot_tf_summary, term_plot_tf_tc, term_df_tf_list, term_plot_all
+    ]
+    visibility_outputs = [
+        overview_stats_md_out, overview_row, perf_time_row, color_plot_placeholder, dow_row, hod_row, dom_row,
+        time_plot_perf_tc, eco_plot_freq_api, eco_plot_wr_api, eco_plot_freq_cust, eco_plot_wr_cust, opp_plot_freq,
+        opp_df_list, opp_plot_elo, titled_status, titled_row, titled_df_h2h_comp, term_plot_tf_summary, term_plot_tf_tc,
+        term_df_tf_list, term_plot_all
+    ]
+    analyze_btn.click(fn=perform_full_analysis, inputs=[username_input, time_period_input, perf_type_input, titled_player_select], outputs=outputs_list).then(
+        fn=update_visibility, inputs=[has_data] + outputs_list[3:], outputs=visibility_outputs
+    )
 
 # --- Launch the Gradio App ---
 if __name__ == "__main__":
