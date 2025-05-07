@@ -1,0 +1,502 @@
+ECO Code,Opening Name
+A00,Irregular Openings
+A01,Nimzo-Larsen Attack
+A02,Bird Opening
+A03,"Bird Opening, 1...Nf6"
+A04,Reti Opening
+A05,"Reti Opening, 1...Nf6"
+A06,"Reti Opening, 1...d5"
+A07,"Reti Opening, 1...Nf6 2.Nf3 d5"
+A08,King's Indian Attack
+A09,"Reti Opening, 1.Nf3 d5"
+A10,English Opening
+A11,"English Opening, 1...c6"
+A12,"English Opening, 1...c6 2.c4"
+A13,"English Opening, 1...e6"
+A14,"English Opening, 1...e6 2.c4 Nf6"
+A15,"English Opening, 1...Nf6"
+A16,"English Opening, 1...c5"
+A17,"English Opening, 1...Nf6 2.Nc3 e6"
+A18,"English Opening, 1...c5 2.Nf3"
+A19,"English Opening, 1...c5 2.g3"
+A20,"English Opening, 1...e5"
+A21,"English Opening, 1...d5"
+A22,"English Opening, 1...e6"
+A23,"English Opening, 1...Nf6"
+A24,"English Opening, 1...e6 2.c4 d5"
+A25,"English Opening, 1...e6 2.c4 Nf6"
+A26,"English Opening, 1...c5"
+A27,"English Opening, Three Knights System"
+A28,"English Opening, 1...e5"
+A29,"English Opening, Four Knights System"
+A30,"English Opening, Symmetrical Variation"
+A31,"English Opening, Symmetrical Variation"
+A32,"English Opening, Symmetrical Variation"
+A33,"English Opening, Symmetrical Variation"
+A34,"English Opening, Symmetrical Variation"
+A35,"English Opening, Symmetrical Variation"
+A36,"English Opening, Symmetrical Variation"
+A37,"English Opening, Symmetrical Variation"
+A38,"English Opening, Symmetrical Variation"
+A39,"English Opening, Symmetrical Variation"
+A40,"Queen""s Pawn Game"
+A41,"Queen""s Pawn Game, Wade Defense"
+A42,Modern Defense
+A43,Old Benoni Defense
+A44,"King""s Indian Defense"
+A45,Indian Game
+A46,"Queen""s Pawn Game"
+A47,"Queen""s Indian Defense"
+A48,"King""s Indian Defense"
+A49,"Indian Game, 1...d5"
+A50,"Queen""s Pawn Game"
+A51,Indian Game
+A52,Budapest Gambit
+A53,Old Indian Defense
+A54,"Old Indian Defense, 2.c4"
+A55,"Old Indian Defense, 2.c4 d4"
+A56,Benoni Defense
+A57,Benko Gambit
+A58,Benko Gambit
+A59,Benko Gambit
+A60,Benoni Defense
+A61,Benoni Defense
+A62,"Benoni Defense, Fianchetto Variation"
+A63,"Benoni Defense, Fianchetto Variation"
+A64,"Benoni Defense, Fianchetto Variation"
+A65,"Benoni Defense, Fianchetto Variation"
+A66,"Benoni Defense, Fianchetto Variation"
+A67,"Benoni Defense, Fianchetto Variation"
+A68,"Benoni Defense, Four Pawns Attack"
+A69,"Benoni Defense, Four Pawns Attack, Main Line"
+A70,Benoni Defense
+A71,"Benoni Defense, Classical Variation"
+A72,"Benoni Defense, Classical Variation"
+A73,"Benoni Defense, Classical Variation"
+A74,"Benoni Defense, Classical Variation"
+A75,"Benoni Defense, Classical Variation"
+A76,"Benoni Defense, Classical Variation"
+A77,"Benoni Defense, Classical Variation"
+A78,"Benoni Defense, Classical Variation"
+A79,"Benoni Defense, Classical Variation"
+A80,Dutch Defense
+A81,Dutch Defense
+A82,"Dutch Defense, Staunton Gambit"
+A83,"Dutch Defense, Staunton Gambit"
+A84,"Dutch Defense, Classical Variation"
+A85,"Dutch Defense, Classical Variation"
+A86,"Dutch Defense, Classical Variation"
+A87,"Dutch Defense, Classical Variation"
+A88,"Dutch Defense, Classical Variation"
+A89,"Dutch Defense, Classical Variation"
+A90,Dutch Defense
+A91,Dutch Defense
+A92,Dutch Defense
+A93,"Dutch Defense, Classical Variation"
+A94,"Dutch Defense, Classical Variation"
+A95,"Dutch Defense, Classical Variation"
+A96,"Dutch Defense, Classical Variation"
+A97,"Dutch Defense, Classical Variation"
+A98,"Dutch Defense, Leningrad Variation"
+A99,"Dutch Defense, Leningrad Variation, Matulovic Variation"
+A100,Polish Opening
+B00,King's Pawn Opening
+B01,Scandinavian Defense
+B02,Alekhine Defense
+B03,"Alekhine Defense, 1...d5"
+B04,"Alekhine Defense, Modern Variation"
+B05,"Alekhine Defense, Modern Variation"
+B06,Robatsch (Modern) Defense
+B07,Pirc Defense
+B08,"Pirc Defense, Classical Variation"
+B09,"Pirc Defense, Austrian Attack"
+B10,Caro-Kann Defense
+B11,"Caro-Kann Defense, Two Knights Attack"
+B12,"Caro-Kann Defense, Advance Variation"
+B13,"Caro-Kann Defense, Exchange Variation"
+B14,"Caro-Kann Defense, Panov-Botvinnik Attack"
+B15,Caro-Kann Defense
+B16,"Caro-Kann Defense, Bronstein-Larsen Variation"
+B17,"Caro-Kann Defense, Karpov Variation"
+B18,"Caro-Kann Defense, Classical Variation"
+B19,"Caro-Kann Defense, Classical Variation"
+B20,Sicilian Defense
+B21,"Sicilian Defense, Smith-Morra Gambit"
+B22,"Sicilian Defense, Alapin Variation"
+B23,"Sicilian Defense, Closed Variation"
+B24,"Sicilian Defense, Closed Variation"
+B25,"Sicilian Defense, Closed Variation"
+B26,"Sicilian Defense, Closed Variation"
+B27,"Sicilian Defense, Hyperaccelerated Fianchetto"
+B28,"Sicilian Defense, O""Kelly Variation"
+B29,"Sicilian Defense, Nimzowitsch Variation"
+B30,Sicilian Defense
+B31,"Sicilian Defense, Rossolimo Variation"
+B32,"Sicilian Defense, Open"
+B33,Sicilian Defense
+B34,"Sicilian Defense, Accelerated Fianchetto"
+B35,"Sicilian Defense, Accelerated Fianchetto"
+B36,"Sicilian Defense, Accelerated Fianchetto"
+B37,"Sicilian Defense, Accelerated Fianchetto"
+B38,"Sicilian Defense, Accelerated Fianchetto"
+B39,"Sicilian Defense, Accelerated Fianchetto"
+B40,Sicilian Defense
+B41,"Sicilian Defense, Kan Variation"
+B42,"Sicilian Defense, Kan Variation"
+B43,"Sicilian Defense, Kan Variation"
+B44,"Sicilian Defense, Accelerated Fianchetto"
+B45,"Sicilian Defense, Accelerated Fianchetto"
+B46,"Sicilian Defense, Taimanov Variation"
+B47,"Sicilian Defense, Taimanov Variation"
+B48,"Sicilian Defense, Taimanov Variation"
+B49,"Sicilian Defense, Taimanov Variation"
+B50,Sicilian Defense
+B51,Sicilian Defense
+B52,Sicilian Defense
+B53,"Sicilian Defense, Chekhover Variation"
+B54,Sicilian Defense
+B55,Sicilian Defense
+B56,Sicilian Defense
+B57,Sicilian Defense
+B58,"Sicilian Defense, Classical Variation"
+B59,"Sicilian Defense, Boleslavsky Variation"
+B60,"Sicilian Defense, Richter-Rauzer Variation"
+B61,"Sicilian Defense, Richter-Rauzer Variation"
+B62,"Sicilian Defense, Richter-Rauzer Variation"
+B63,"Sicilian Defense, Richter-Rauzer Variation"
+B64,"Sicilian Defense, Richter-Rauzer Variation"
+B65,"Sicilian Defense, Richter-Rauzer Variation"
+B66,"Sicilian Defense, Richter-Rauzer Variation"
+B67,"Sicilian Defense, Richter-Rauzer Variation"
+B68,"Sicilian Defense, Richter-Rauzer Variation"
+B69,"Sicilian Defense, Richter-Rauzer Variation"
+B70,Sicilian Defense
+B71,"Sicilian Defense, Dragon Variation"
+B72,"Sicilian Defense, Dragon Variation"
+B73,"Sicilian Defense, Dragon Variation"
+B74,"Sicilian Defense, Dragon Variation"
+B75,"Sicilian Defense, Dragon Variation"
+B76,"Sicilian Defense, Dragon Variation"
+B77,"Sicilian Defense, Dragon Variation"
+B78,"Sicilian Defense, Dragon Variation"
+B79,"Sicilian Defense, Dragon Variation"
+B80,"Sicilian Defense, Scheveningen Variation"
+B81,"Sicilian Defense, Scheveningen Variation"
+B82,"Sicilian Defense, Scheveningen Variation"
+B83,"Sicilian Defense, Scheveningen Variation"
+B84,"Sicilian Defense, Scheveningen Variation"
+B85,"Sicilian Defense, Scheveningen Variation"
+B86,"Sicilian Defense, Sozin Attack"
+B87,"Sicilian Defense, Sozin Attack"
+B88,"Sicilian Defense, Sozin Attack"
+B89,"Sicilian Defense, Sozin Attack"
+B90,Sicilian Defense
+B91,Sicilian Defense
+B92,Sicilian Defense
+B93,"Sicilian Defense, Najdorf Variation"
+B94,"Sicilian Defense, Najdorf Variation"
+B95,"Sicilian Defense, Najdorf Variation"
+B96,"Sicilian Defense, Najdorf Variation"
+B97,"Sicilian Defense, Najdorf Variation"
+B98,"Sicilian Defense, Najdorf Variation"
+B99,"Sicilian Defense, Najdorf Variation"
+C00,French Defense
+C01,"French Defense, Exchange Variation"
+C02,"French Defense, Advance Variation"
+C03,"French Defense, Tarrasch Variation"
+C04,"French Defense, Tarrasch Variation"
+C05,"French Defense, Tarrasch Variation"
+C06,"French Defense, Tarrasch Variation"
+C07,"French Defense, Tarrasch Variation"
+C08,"French Defense, Tarrasch Variation"
+C09,"French Defense, Tarrasch Variation"
+C10,French Defense
+C11,French Defense
+C12,"French Defense, MacCutcheon Variation"
+C13,French Defense
+C14,"French Defense, Classical Variation"
+C15,"French Defense, Winawer Variation"
+C16,"French Defense, Winawer Variation"
+C17,"French Defense, Winawer Variation"
+C18,"French Defense, Winawer Variation"
+C19,"French Defense, Winawer Variation"
+C20,"King""s Pawn Game"
+C21,Center Game
+C22,"Center Game, Berger Variation"
+C23,"Bishop""s Opening"
+C24,"Bishop""s Opening, Berlin Defense"
+C25,Vienna Game
+C26,Vienna Game
+C27,Vienna Game
+C28,Vienna Game
+C29,Vienna Game
+C30,"King""s Gambit Declined"
+C31,"King""s Gambit Declined, Falkbeer Counter-Gambit"
+C32,"King""s Gambit Declined, Falkbeer Counter-Gambit"
+C33,"King""s Gambit Accepted"
+C34,"King""s Gambit Accepted"
+C35,"King""s Gambit Accepted, Cunningham Defense"
+C36,"King""s Gambit Accepted, Abbazia Defense"
+C37,"King""s Gambit Accepted"
+C38,"King""s Gambit Accepted"
+C39,"King""s Gambit Accepted"
+C40,"King""s Knight Opening"
+C41,Philidor Defense
+C42,Petrov Defense
+C43,"Petrov Defense, Modern Attack"
+C44,"King""s Pawn Game"
+C45,Scotch Game
+C46,Three Knights Game
+C47,Four Knights Game
+C48,"Four Knights Game, Spanish Variation"
+C49,"Four Knights Game, Spanish Variation"
+C50,Italian Game
+C51,Italian Game
+C52,Italian Game
+C53,Italian Game
+C54,"Italian Game, Classical Variation"
+C55,"Italian Game, Two Knights Defense"
+C56,"Italian Game, Two Knights Defense"
+C57,"Italian Game, Two Knights Defense"
+C58,"Italian Game, Two Knights Defense"
+C59,"Italian Game, Two Knights Defense"
+C60,Ruy Lopez
+C61,"Ruy Lopez, Bird""s Defense"
+C62,"Ruy Lopez, Old Steinitz Defense"
+C63,"Ruy Lopez, Schliemann Defense"
+C64,"Ruy Lopez, Classical Variation"
+C65,"Ruy Lopez, Berlin Defense"
+C66,"Ruy Lopez, Berlin Defense, 4.O-O"
+C67,Ruy Lopez
+C68,"Ruy Lopez, Exchange Variation"
+C69,"Ruy Lopez, Exchange Variation"
+C70,Ruy Lopez
+C71,Ruy Lopez
+C72,"Ruy Lopez, Modern Steinitz Defense"
+C73,"Ruy Lopez, Modern Steinitz Defense"
+C74,"Ruy Lopez, Modern Steinitz Defense"
+C75,"Ruy Lopez, Modern Steinitz Defense"
+C76,"Ruy Lopez, Modern Steinitz Defense"
+C77,"Ruy Lopez, Morphy Defense"
+C78,"Ruy Lopez, Morphy Defense"
+C79,"Ruy Lopez, Steinitz Defense Deferred"
+C80,Ruy Lopez
+C81,"Ruy Lopez, Open"
+C82,"Ruy Lopez, Open"
+C83,"Ruy Lopez, Open"
+C84,"Ruy Lopez, Closed"
+C85,"Ruy Lopez, Exchange Variation"
+C86,"Ruy Lopez, Worrall Attack"
+C87,"Ruy Lopez, Open"
+C88,"Ruy Lopez, Closed"
+C89,"Ruy Lopez, Marshall Attack"
+C90,Ruy Lopez
+C91,"Ruy Lopez, Closed"
+C92,"Ruy Lopez, Closed"
+C93,"Ruy Lopez, Closed"
+C94,"Ruy Lopez, Closed"
+C95,"Ruy Lopez, Closed"
+C96,"Ruy Lopez, Closed"
+C97,"Ruy Lopez, Closed"
+C98,"Ruy Lopez, Closed"
+C99,"Ruy Lopez, Closed"
+D00,"Queen""s Pawn Game"
+D01,Richter-Veresov Attack
+D02,"Queen""s Pawn Game"
+D03,Torre Attack
+D04,"Queen""s Pawn Game"
+D05,"Queen""s Pawn Game"
+D06,"Queen""s Gambit Declined"
+D07,"Queen""s Gambit Declined, Chigorin Defense"
+D08,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D09,"Queen""s Gambit Declined, Albin Counter-Gambit, 5.g3"
+D10,"Queen""s Gambit Declined Slav Defense"
+D11,"Queen""s Gambit Declined Slav Defense"
+D12,"Queen""s Gambit Declined Slav Defense"
+D13,"Queen""s Gambit Declined Slav Defense"
+D14,"Queen""s Gambit Declined Slav Defense, Exchange Variation"
+D15,"Queen""s Gambit Declined Slav Defense"
+D16,"Queen""s Gambit Declined Slav Defense"
+D17,"Queen""s Gambit Declined Slav Defense"
+D18,"Queen""s Gambit Declined Slav Defense"
+D19,"Queen""s Gambit Declined Slav Defense"
+D20,"Queen""s Gambit Accepted"
+D21,"Queen""s Gambit Accepted"
+D22,"Queen""s Gambit Accepted"
+D23,"Queen""s Gambit Accepted"
+D24,"Queen""s Gambit Accepted"
+D25,"Queen""s Gambit Accepted"
+D26,"Queen""s Gambit Accepted"
+D27,"Queen""s Gambit Accepted, Classical Variation"
+D28,"Queen""s Gambit Accepted, Classical Variation"
+D29,"Queen""s Gambit Accepted, Classical Variation"
+D30,"Queen""s Gambit Declined"
+D31,"Queen""s Gambit Declined"
+D32,"Queen""s Gambit Declined, Tarrasch Defense"
+D33,"Queen""s Gambit Declined, Tarrasch Defense"
+D34,"Queen""s Gambit Declined, Tarrasch Defense"
+D35,"Queen""s Gambit Declined"
+D36,"Queen""s Gambit Declined, Exchange Variation"
+D37,"Queen""s Gambit Declined, Exchange Variation"
+D38,"Queen""s Gambit Declined, Ragozin Variation"
+D39,"Queen""s Gambit Declined, Ragozin Variation"
+D40,"Queen""s Gambit Declined"
+D41,"Queen""s Gambit Declined, Semi-Tarrasch"
+D42,"Queen""s Gambit Declined, Semi-Tarrasch"
+D43,"Queen""s Gambit Declined Semi-Slav"
+D44,"Queen""s Gambit Declined Semi-Slav"
+D45,"Queen""s Gambit Declined Semi-Slav"
+D46,"Queen""s Gambit Declined Semi-Slav"
+D47,"Queen""s Gambit Declined Semi-Slav"
+D48,"Queen""s Gambit Declined Semi-Slav"
+D49,"Queen""s Gambit Declined Semi-Slav"
+D50,"Queen""s Gambit Declined"
+D51,"Queen""s Gambit Declined"
+D52,"Queen""s Gambit Declined"
+D53,"Queen""s Gambit Declined"
+D54,"Queen""s Gambit Declined, Anti-Neo-Orthodox Variation"
+D55,"Queen""s Gambit Declined"
+D56,"Queen""s Gambit Declined"
+D57,"Queen""s Gambit Declined, Lasker Defense"
+D58,"Queen""s Gambit Declined, Tartakower (Makagonov-Bondarevsky) System"
+D59,"Queen""s Gambit Declined, Tartakower (Makagonov-Bondarevsky) System"
+D60,"Queen""s Gambit Declined"
+D61,"Queen""s Gambit Declined"
+D62,"Queen""s Gambit Declined, Tartakower (Makagonov-Bondarevsky) System"
+D63,"Queen""s Gambit Declined, Tartakower (Makagonov-Bondarevsky) System"
+D64,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D65,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D66,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D67,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D68,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D69,"Queen""s Gambit Declined, Albin Counter-Gambit"
+D70,Neo-Grunfeld Defense
+D71,Neo-Grunfeld Defense
+D72,"Neo-Grunfeld Defense, 5.cd"
+D73,"Neo-Grunfeld Defense, 5.cd"
+D74,"Neo-Grunfeld Defense, 6.cd Nxd5"
+D75,Neo-Grunfeld Defense
+D76,Neo-Grunfeld Defense
+D77,Neo-Grunfeld Defense
+D78,"Neo-Grunfeld Defense, 6.O-O dxc4"
+D79,"Neo-Grunfeld Defense, 6.O-O, Main line"
+D80,Grunfeld Defense
+D81,"Grunfeld Defense, Russian System"
+D82,"Grunfeld Defense, 4.Bf4"
+D83,"Grunfeld Defense, 4.Bf4"
+D84,"Grunfeld Defense, Exchange Variation"
+D85,"Grunfeld Defense, Exchange Variation"
+D86,"Grunfeld Defense, Exchange Variation"
+D87,"Grunfeld Defense, Exchange Variation"
+D88,"Grunfeld Defense, Exchange Variation"
+D89,"Grunfeld Defense, Exchange Variation"
+D90,Grunfeld Defense
+D91,"Grunfeld Defense, 5.Bg5"
+D92,"Grunfeld Defense, 5.Bf4"
+D93,"Grunfeld Defense, 5.Bf4 O-O"
+D94,"Grunfeld Defense, 5.Bf4"
+D95,Grunfeld Defense
+D96,"Grunfeld Defense, Russian System"
+D97,"Grunfeld Defense, Russian System"
+D98,"Grunfeld Defense, Russian System"
+D99,"Grunfeld Defense, Russian System"
+E00,Indian Game
+E01,Catalan Opening
+E02,Catalan Opening
+E03,Catalan Opening
+E04,Catalan Opening
+E05,Catalan Opening
+E06,Catalan Opening
+E07,Catalan Opening
+E08,Catalan Opening
+E09,Catalan Opening
+E10,"Queen""s Pawn Game"
+E11,Bogo-Indian Defense
+E12,"Queen""s Indian Defense"
+E13,"Queen""s Indian Defense"
+E14,"Queen""s Indian Defense"
+E15,"Queen""s Indian Defense"
+E16,"Queen""s Indian Defense"
+E17,"Queen""s Indian Defense"
+E18,"Queen""s Indian Defense"
+E19,"Queen""s Indian Defense"
+E20,Nimzo-Indian Defense
+E21,Nimzo-Indian Defense
+E22,"Nimzo-Indian Defense, Spielmann Variation"
+E23,"Nimzo-Indian Defense, Spielmann Variation"
+E24,"Nimzo-Indian Defense, Samisch"
+E25,"Nimzo-Indian Defense, Samisch"
+E26,"Nimzo-Indian Defense, Samisch"
+E27,"Nimzo-Indian Defense, Samisch Variation"
+E28,"Nimzo-Indian Defense, Samisch Variation"
+E29,"Nimzo-Indian Defense, Samisch Variation"
+E30,Nimzo-Indian Defense
+E31,Nimzo-Indian Defense
+E32,Nimzo-Indian Defense
+E33,"Nimzo-Indian Defense, Classical Variation"
+E34,"Nimzo-Indian Defense, Classical Variation"
+E35,"Nimzo-Indian Defense, Classical Variation"
+E36,"Nimzo-Indian Defense, Classical Variation"
+E37,"Nimzo-Indian Defense, Classical Variation"
+E38,"Nimzo-Indian Defense, Classical Variation"
+E39,"Nimzo-Indian Defense, Classical Variation"
+E40,Nimzo-Indian Defense
+E41,Nimzo-Indian Defense
+E42,"Nimzo-Indian Defense, 4.e3 c5"
+E43,"Nimzo-Indian Defense, Fischer Variation"
+E44,"Nimzo-Indian Defense, Fischer Variation"
+E45,"Nimzo-Indian Defense, Fischer Variation"
+E46,Nimzo-Indian Defense
+E47,Nimzo-Indian Defense
+E48,"Nimzo-Indian Defense, 4.e3 O-O 5.Bd3 d5"
+E49,"Nimzo-Indian Defense, 4.e3, Botvinnik System"
+E50,Nimzo-Indian Defense
+E51,Nimzo-Indian Defense
+E52,"Nimzo-Indian Defense, 4.e3"
+E53,"Nimzo-Indian Defense, 4.e3"
+E54,"Nimzo-Indian Defense, Gligoric System"
+E55,"Nimzo-Indian Defense, Gligoric System"
+E56,"Nimzo-Indian Defense, 4.e3, Main line with 7...Nc6"
+E57,"Nimzo-Indian Defense, 4.e3, Main line with 8...dc and 9...cd"
+E58,"Nimzo-Indian Defense, 4.e3, Main line with 8...Bb7"
+E59,"Nimzo-Indian Defense, 4.e3, Main line"
+E60,"King""s Indian Defense"
+E61,"King""s Indian Defense"
+E62,"King""s Indian Defense"
+E63,"King""s Indian Defense, Fianchetto"
+E64,"King""s Indian Defense, Fianchetto Variation"
+E65,"King""s Indian Defense, Fianchetto Variation"
+E66,"King""s Indian Defense, Fianchetto Variation"
+E67,"King""s Indian Defense, Fianchetto Variation"
+E68,"King""s Indian Defense, Fianchetto Variation"
+E69,"King""s Indian Defense, Fianchetto Variation"
+E70,"King""s Indian Defense"
+E71,"King""s Indian Defense, Makagonov System (5.h3)"
+E72,"King""s Indian Defense, Makagonov System (5.h3)"
+E73,"King""s Indian Defense, Averbakh System (With ...Bd6)"
+E74,"King""s Indian Defense, Averbakh System (With ...Bd6)"
+E75,"King""s Indian Defense, Averbakh System"
+E76,"King""s Indian Defense, Four Pawns Attack"
+E77,"King""s Indian Defense"
+E78,"King""s Indian Defense"
+E79,"King""s Indian Defense, Four Pawns Attack, Main line"
+E80,"King""s Indian Defense"
+E81,"King""s Indian Defense"
+E82,"King""s Indian Defense"
+E83,"King""s Indian Defense"
+E84,"King""s Indian Defense"
+E85,"King""s Indian Defense"
+E86,"King""s Indian Defense"
+E87,"King""s Indian Defense"
+E88,"King""s Indian Defense, Sämisch Variation"
+E89,"King""s Indian Defense, Sämisch Variation"
+E90,"King""s Indian Defense"
+E91,"King""s Indian Defense"
+E92,"King""s Indian Defense"
+E93,"King""s Indian Defense, Petrosian System"
+E94,"King""s Indian Defense, Orthodox Variation"
+E95,"King""s Indian Defense, Orthodox Variation"
+E96,"King""s Indian Defense, Orthodox Variation"
+E97,"King""s Indian Defense, Orthodox Variation"
+E98,"King""s Indian Defense, Orthodox Variation"
+E99,"King""s Indian Defense, Orthodox Variation"
