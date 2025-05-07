@@ -1,63 +1,23 @@
-name: Sync Gradio app to Hugging Face Space
-
+name: Sync to Hugging Face hub
 on:
   push:
-    branches:
-      - main # یا master، هر کدام که شاخه اصلی شماست
+    branches: [main] # یا master اگر شاخه اصلی شما master هست
+  workflow_dispatch: # اجازه اجرای دستی از تب Actions
 
 jobs:
-  sync-to-hf-space:
+  sync-to-hub:
     runs-on: ubuntu-latest
     steps:
-      # 1. Check out the repository so the action can access it
-      - name: Checkout Repo
-        uses: actions/checkout@v4 # Use the latest version
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # برای گرفتن کل تاریخچه git، برای push لازمه
+          lfs: true      # اگر فایل‌های بزرگ با Git LFS دارید
 
-      # 2. Push to Hugging Face Space Repo
-      #    Uses git push with force, requires HF_TOKEN secret
-      - name: Push to HF Space
+      - name: Push to hub
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }} # Get the token from GitHub secrets
-        run: |
-          # Clone the HF Space repo, configure git user, copy files, commit and push
-          # Replace placeholders with your actual HF username and Space name
-          git clone https://huggingface.co/spaces/Andolinism/Lichess hf_space_temp
-          cd hf_space_temp
-
-          # Remove existing files (optional, but safer for a clean sync) - CAUTION!
-          # Ensure we don't delete the .git directory of the Space repo itself!
-          find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
-          git status # See what will be removed
-
-          # Stage removals if any
-          git add -u
-
-          # Commit removal or ignore if nothing changed
-          git commit -m "Clean slate for sync" || echo "No files to remove for clean slate."
-
-
-          # Copy files from the GitHub repo (checked out earlier) to the temp HF repo clone
-          # The path "../" refers to the checked out GitHub repo root one level up
-          # Exclude the .git directory of the source repo itself and the target clone dir!
-          echo "Copying files from GitHub repo to HF Space clone..."
-          rsync -av --delete --exclude='.git/' --exclude='hf_space_temp/' ../ ./
-          echo "rsync completed."
-          git status # See what will be added/changed
-
-          # Configure git user for commit
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-          # Add, commit, and push changes
-          # Check if there are any changes to commit
-          echo "Checking for changes to commit..."
-          git add . # Add all new/modified files explicitly
-          if ! git diff --staged --quiet; then
-            echo "Changes detected, committing and pushing..."
-            git commit -m "Sync code from GitHub repo [skip ci]" # Add [skip ci] to prevent triggering this workflow again if HF also had Actions
-            # Push using the token
-            git push https://Andolinism:${HF_TOKEN}@huggingface.co/spaces/Andolinism/Lichess main --force # Force push is often needed for Spaces
-            echo "Push successful."
-          else
-            echo "No changes to sync."
-          fi
+          HF_TOKEN: ${{ secrets.HF_TOKEN }} # استفاده از سکرتی که تعریف کردیم
+        # دستور زیر را با اطلاعات خودتان جایگزین کنید
+        # YOUR_HF_USERNAME: نام کاربری شما در Hugging Face
+        # YOUR_SPACE_NAME: نام Space شما در Hugging Face
+        run: git push https://Andolinism:${HF_TOKEN}@huggingface.co/spaces/Andolinism/Lichess main -f
+        # مثال: git push https://Andolinism:${HF_TOKEN}@huggingface.co/spaces/Andolinism/protein-profile-viewer main -f
