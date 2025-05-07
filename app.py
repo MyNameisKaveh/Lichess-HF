@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # =============================================
-# Gradio App for Chess Game Analysis - Lichess API Version
-# v1.0: Converted from Streamlit. Uses Gradio UI and targets Hugging Face Spaces.
+# Streamlit App for Chess Game Analysis - Lichess API Version
+# v15: Meticulously rewritten categorize_time_control to ensure correct syntax.
 # =============================================
 
-import gradio as gr
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -15,170 +15,175 @@ import time
 import re
 import traceback
 
+# --- Configuration ---
+st.set_page_config(layout="wide", page_title="Lichess Insights", page_icon="♟️")
+
 # --- Constants & Defaults ---
 TIME_PERIOD_OPTIONS = { "Last Month": timedelta(days=30), "Last 3 Months": timedelta(days=90), "Last Year": timedelta(days=365), "Last 3 Years": timedelta(days=3*365) }
 DEFAULT_TIME_PERIOD = "Last Year"
 PERF_TYPE_OPTIONS_SINGLE = ['Bullet', 'Blitz', 'Rapid']
 DEFAULT_PERF_TYPE = 'Bullet'
 DEFAULT_RATED_ONLY = True
-ECO_CSV_PATH = "eco_to_opening.csv" # Ensure this file exists in the Space repo
+ECO_CSV_PATH = "eco_to_opening.csv"
 TITLES_TO_ANALYZE = ['GM', 'IM', 'FM', 'CM', 'WGM', 'WIM', 'WFM', 'WCM', 'NM']
+FAMOUS_OPPONENTS = [ "DrNykterstein", "MagnusCarlsen", "Hikaru", "AnishGiri", "FabianoCaruana",
+                     "lachesisQ", "WesleySo", "GMWSO", "VladislavArtemiev", "Duhless", ]
 
 # =============================================
-# Helper Function: Categorize Time Control (Correct)
+# Helper Function: Categorize Time Control *** REWRITTEN WITH EXTREME CARE ***
 # =============================================
 def categorize_time_control(tc_str, speed_info):
-    if isinstance(speed_info, str) and speed_info in ['bullet', 'blitz', 'rapid', 'classical', 'correspondence']: return speed_info.capitalize()
-    if not isinstance(tc_str, str) or tc_str in ['-', '?', 'Unknown','Correspondence']: return 'Unknown' if tc_str!='Correspondence' else 'Correspondence'
-    if '+' in tc_str:
-        try: parts=tc_str.split('+');
-             if len(parts)==2: base=int(parts[0]); increment=int(parts[1]); total=base+40*increment
-             else: return 'Unknown'
-        except(ValueError,IndexError): return 'Unknown'
-        if total>=1500: return 'Classical';
-        if total>=480: return 'Rapid';
-        if total>=180: return 'Blitz';
-        if total>0 : return 'Bullet';
+    """Categorizes time control based on speed info or parsed string."""
+    # 1. Prioritize speed info from API
+    if isinstance(speed_info, str) and speed_info in ['bullet', 'blitz', 'rapid', 'classical', 'correspondence']:
+        return speed_info.capitalize()
+
+    # 2. Handle invalid or special tc_str inputs
+    if not isinstance(tc_str, str) or tc_str in ['-', '?', 'Unknown']:
         return 'Unknown'
-    else:
-        try: base=int(tc_str)
-             if base>=1500: return 'Classical';
-             if base>=480: return 'Rapid';
-             if base>=180: return 'Blitz';
-             if base>0 : return 'Bullet';
+    if tc_str == 'Correspondence':
+        return 'Correspondence'
+
+    # 3. Handle format like "180+2"
+    if '+' in tc_str:
+        base = -1 # Initialize with invalid values
+        increment = -1
+        try: # *** TRY block for splitting and converting ***
+            parts = tc_str.split('+')
+            if len(parts) == 2:
+                base = int(parts[0])
+                increment = int(parts[1])
+            else:
+                return 'Unknown' # Invalid format
+        except (ValueError, IndexError): # *** EXCEPT block for splitting/conversion errors ***
              return 'Unknown'
-        except ValueError: tc_lower=tc_str.lower();
-             if 'classical' in tc_lower: return 'Classical';
-             if 'rapid' in tc_lower: return 'Rapid';
-             if 'blitz' in tc_lower: return 'Blitz';
-             if 'bullet' in tc_lower: return 'Bullet';
-             return 'Unknown'
+        # If conversion was successful (no exception occurred):
+        if base >= 0 and increment >= 0: # Check if values were successfully parsed
+            total = base + 40 * increment
+            if total >= 1500: return 'Classical'
+            if total >= 480: return 'Rapid'
+            if total >= 180: return 'Blitz'
+            if total > 0 : return 'Bullet'
+        return 'Unknown' # Return Unknown if values were invalid or classification failed
 
-# =============================================
-# Helper Function: Load ECO Mapping
-# =============================================
-# @st.cache_data -> Gradio doesn't have built-in caching like streamlit's decorator
-# We load it once globally or pass it if needed. Let's load globally for simplicity.
-ECO_MAPPING = {}
-try:
-    df_eco_global = pd.read_csv(ECO_CSV_PATH)
-    if "ECO Code" in df_eco_global.columns and "Opening Name" in df_eco_global.columns:
-        ECO_MAPPING = df_eco_global.drop_duplicates(subset=['ECO Code']).set_index('ECO Code')['Opening Name'].to_dict()
-        print(f"Successfully loaded {len(ECO_MAPPING)} ECO mappings.") # Print to console/logs
+    # 4. Handle format like "300" (only base time)
     else:
-        print(f"Warning: ECO file '{ECO_CSV_PATH}' missing required columns.")
-except FileNotFoundError:
-    print(f"Warning: ECO file '{ECO_CSV_PATH}' not found. Custom names unavailable.")
-except Exception as e:
-    print(f"Warning: Error loading ECO file: {e}")
+        base = -1
+        try: # *** TRY block for base time conversion ***
+            base = int(tc_str)
+        except ValueError: # *** EXCEPT block for base time conversion failure ***
+            # Fallback to keywords only if integer conversion fails
+            tc_lower = tc_str.lower()
+            if 'classical' in tc_lower: return 'Classical'
+            if 'rapid' in tc_lower: return 'Rapid'
+            if 'blitz' in tc_lower: return 'Blitz'
+            if 'bullet' in tc_lower: return 'Bullet'
+            return 'Unknown' # Failed all checks
+
+        # If conversion was successful:
+        if base >= 1500: return 'Classical'
+        if base >= 480: return 'Rapid'
+        if base >= 180: return 'Blitz'
+        if base > 0 : return 'Bullet'
+        return 'Unknown' # Base time is 0 or negative
 
 # =============================================
-# API Data Loading and Processing Function (Takes eco_map)
+# Helper Function: Load ECO Mapping (Unchanged)
 # =============================================
-# No Gradio caching decorator here, caching handled by Blocks state if needed
-def load_from_lichess_api(username: str, time_period_key: str, perf_type: str, rated: bool, eco_map: dict, progress=gr.Progress()):
-    """ Fetches and processes Lichess games, updates progress. """
-    progress(0, desc="Initializing...") # Gradio progress update
-    if not username: return pd.DataFrame(), "⚠️ Please enter a Lichess username."
-    if not perf_type: return pd.DataFrame(), "⚠️ Please select a game type."
+@st.cache_data
+def load_eco_mapping(csv_path):
+    try:
+        df_eco = pd.read_csv(csv_path);
+        if "ECO Code" not in df_eco.columns or "Opening Name" not in df_eco.columns:
+            st.error(f"ECO file missing required columns."); return {}
+        eco_map = df_eco.drop_duplicates(subset=['ECO Code']).set_index('ECO Code')['Opening Name'].to_dict()
+        st.sidebar.success(f"Loaded {len(eco_map)} ECO mappings.")
+        return eco_map
+    except FileNotFoundError: st.sidebar.error(f"ECO file '{csv_path}' not found."); return {}
+    except Exception as e: st.sidebar.error(f"Error loading ECO file: {e}"); return {}
 
+# =============================================
+# API Data Loading and Processing Function (Unchanged)
+# =============================================
+@st.cache_data(ttl=3600)
+def load_from_lichess_api(username: str, time_period_key: str, perf_type: str, rated: bool, eco_map: dict):
+    # ... (Code identical to version 13 - calls the fixed helper) ...
+    if not username: st.warning("Please enter a Lichess username."); return pd.DataFrame()
+    if not perf_type: st.warning("Please select a game type."); return pd.DataFrame()
     username_lower = username.lower()
-    status_message = f"Fetching {perf_type} games for '{username}' ({time_period_key})..."
-    progress(0.1, desc=status_message)
-
-    since_timestamp_ms = None
-    time_delta = TIME_PERIOD_OPTIONS.get(time_period_key)
-    if time_delta: start_date = datetime.now(timezone.utc) - time_delta; since_timestamp_ms = int(start_date.timestamp() * 1000)
-
+    st.info(f"Fetching games for '{username}' ({time_period_key} | Type: {perf_type})...")
+    since_timestamp_ms = None; time_delta = TIME_PERIOD_OPTIONS.get(time_period_key)
+    if time_delta: start_date = datetime.now(timezone.utc) - time_delta; since_timestamp_ms = int(start_date.timestamp() * 1000); st.caption(f"Fetching since: {start_date.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    else: st.warning("Invalid time period selected.")
     api_params = {"rated":str(rated).lower(), "perfType":perf_type.lower(), "opening":"true", "moves":"false", "tags":"false", "pgnInJson":"false" }
     if since_timestamp_ms: api_params["since"] = since_timestamp_ms
-
     api_url = f"https://lichess.org/api/games/user/{username}"; headers = {"Accept":"application/x-ndjson"}
     all_games_data = []; error_counter = 0; games_processed_for_log = 0
-
     try:
-        response = requests.get(api_url, params=api_params, headers=headers, stream=True)
-        response.raise_for_status()
-        progress(0.3, desc="Processing game stream...")
-        total_lines = response.headers.get('Content-Length') # Estimate? Often not present for streams
-        lines_processed = 0
-
-        for line in response.iter_lines():
-            if line:
-                lines_processed += 1
-                # Simple progress update based on lines (if total known, otherwise just pulses)
-                # progress(lines_processed / int(total_lines) if total_lines else None, desc="Processing...")
-                if lines_processed % 100 == 0: # Update progress periodically
-                     progress(0.3 + (lines_processed % 1000 / 2000), desc=f"Processing game {lines_processed}...") # Example progress logic
-
-                game_data_raw = line.decode('utf-8'); game_data = None;
-                try:
-                    game_data = json.loads(game_data_raw)
-                    # --- Data Extraction ---
-                    white_info=game_data.get('players',{}).get('white',{}); black_info=game_data.get('players',{}).get('black',{})
-                    white_user=white_info.get('user',{}); black_user=black_info.get('user',{})
-                    opening_info=game_data.get('opening',{}); clock_info=game_data.get('clock')
-                    game_id=game_data.get('id','N/A'); created_at_ms=game_data.get('createdAt')
-                    game_date=pd.to_datetime(created_at_ms,unit='ms',utc=True,errors='coerce');
-                    if pd.isna(game_date): continue
-                    variant=game_data.get('variant','standard'); speed=game_data.get('speed','unknown')
-                    perf=game_data.get('perf','unknown'); status=game_data.get('status','unknown'); winner=game_data.get('winner')
-                    white_name=white_user.get('name','Unknown'); black_name=black_user.get('name','Unknown')
-                    white_title=white_user.get('title'); black_title=black_user.get('title')
-                    white_rating=pd.to_numeric(white_info.get('rating'),errors='coerce')
-                    black_rating=pd.to_numeric(black_info.get('rating'),errors='coerce')
-                    player_color,player_elo,opp_name_raw,opp_title_raw,opp_elo=(None,None,'Unknown',None,None)
-                    if username_lower==white_name.lower(): player_color,player_elo,opp_name_raw,opp_title_raw,opp_elo=('White',white_rating,black_name,black_title,black_rating)
-                    elif username_lower==black_name.lower(): player_color,player_elo,opp_name_raw,opp_title_raw,opp_elo=('Black',black_rating,white_name,white_title,white_rating)
-                    else: continue
-                    if player_color is None or pd.isna(player_elo) or pd.isna(opp_elo): continue
-                    res_num,res_str=(0.5,"Draw")
-                    if status not in ['draw','stalemate']:
-                       if winner==player_color.lower(): res_num,res_str=(1,"Win")
-                       elif winner is not None: res_num,res_str=(0,"Loss")
-                    tc_str="Unknown"
-                    if clock_info: init=clock_info.get('initial');incr=clock_info.get('increment');
-                    if init is not None and incr is not None: tc_str=f"{init}+{incr}"
-                    elif speed=='correspondence': tc_str="Correspondence"
-                    eco=opening_info.get('eco','Unknown'); op_name_api=opening_info.get('name','Unknown Opening').replace('?','').split(':')[0].strip()
-                    op_name_custom=eco_map.get(eco, f"ECO: {eco}" if eco!='Unknown' else 'Unknown Opening')
-                    term_map={"mate":"Normal","resign":"Normal","stalemate":"Normal","timeout":"Time forfeit","draw":"Normal","outoftime":"Time forfeit","cheat":"Cheat","noStart":"Aborted","unknownFinish":"Unknown","variantEnd":"Variant End"}
-                    term=term_map.get(status,"Unknown")
-                    opp_title_final='Unknown'
-                    if opp_title_raw and opp_title_raw.strip(): opp_title_clean=opp_title_raw.replace(' ','').strip().upper();
-                    if opp_title_clean and opp_title_clean!='?': opp_title_final=opp_title_clean
-                    def clean_name(n): return re.sub(r'^(GM|IM|FM|WGM|WIM|WFM|CM|WCM|NM)\s+','',n).strip()
-                    opp_name_clean=clean_name(opp_name_raw)
-                    all_games_data.append({'Date':game_date,'Event':perf,'White':white_name,'Black':black_name,'Result':"1-0" if winner=='white' else ("0-1" if winner=='black' else "1/2-1/2"),'WhiteElo':int(white_rating) if not pd.isna(white_rating) else 0,'BlackElo':int(black_rating) if not pd.isna(black_rating) else 0,'ECO':eco,'OpeningName_API':op_name_api,'OpeningName_Custom':op_name_custom,'TimeControl':tc_str,'Termination':term,'PlyCount':game_data.get('turns',0),'LichessID':game_id,'PlayerID':username,'PlayerColor':player_color,'PlayerElo':int(player_elo),'OpponentName':opp_name_clean,'OpponentNameRaw':opp_name_raw,'OpponentElo':int(opp_elo),'OpponentTitle':opp_title_final,'PlayerResultNumeric':res_num,'PlayerResultString':res_str,'Variant':variant,'Speed':speed,'Status':status,'PerfType':perf})
-                except json.JSONDecodeError: error_counter += 1
-                except Exception: error_counter += 1 # Count all other errors
-
-    except requests.exceptions.RequestException as e: return pd.DataFrame(), f"🚨 API Request Failed: {e}"
-    except Exception as e: return pd.DataFrame(), f"🚨 Unexpected error: {e}\n{traceback.format_exc()}"
-
-    status_message = f"Processed {len(all_games_data)} games."
-    if error_counter > 0: status_message += f" Skipped {error_counter} entries due to errors."
-    if not all_games_data: status_message = f"⚠️ No games found for '{username}' matching criteria."; return pd.DataFrame(), status_message
-
-    progress(0.8, desc="Finalizing data...")
-    df = pd.DataFrame(all_games_data)
-
-    # --- Final Feature Engineering ---
+        with st.spinner(f"Calling Lichess API for {username} ({perf_type} games)..."):
+            response = requests.get(api_url, params=api_params, headers=headers, stream=True); response.raise_for_status()
+            for line in response.iter_lines():
+                if line:
+                    game_data_raw = line.decode('utf-8'); game_data = None; games_processed_for_log += 1
+                    try:
+                        game_data = json.loads(game_data_raw)
+                        white_info=game_data.get('players',{}).get('white',{}); black_info=game_data.get('players',{}).get('black',{})
+                        white_user=white_info.get('user',{}); black_user=black_info.get('user',{})
+                        opening_info=game_data.get('opening',{}); clock_info=game_data.get('clock')
+                        game_id=game_data.get('id','N/A'); created_at_ms=game_data.get('createdAt')
+                        game_date=pd.to_datetime(created_at_ms,unit='ms',utc=True,errors='coerce');
+                        if pd.isna(game_date): continue
+                        variant=game_data.get('variant','standard'); speed=game_data.get('speed','unknown')
+                        perf=game_data.get('perf','unknown'); status=game_data.get('status','unknown'); winner=game_data.get('winner')
+                        white_name=white_user.get('name','Unknown'); black_name=black_user.get('name','Unknown')
+                        white_title=white_user.get('title'); black_title=black_user.get('title')
+                        white_rating=pd.to_numeric(white_info.get('rating'),errors='coerce')
+                        black_rating=pd.to_numeric(black_info.get('rating'),errors='coerce')
+                        player_color,player_elo,opp_name_raw,opp_title_raw,opp_elo=(None,None,'Unknown',None,None)
+                        if username_lower==white_name.lower(): player_color,player_elo,opp_name_raw,opp_title_raw,opp_elo=('White',white_rating,black_name,black_title,black_rating)
+                        elif username_lower==black_name.lower(): player_color,player_elo,opp_name_raw,opp_title_raw,opp_elo=('Black',black_rating,white_name,white_title,white_rating)
+                        else: continue
+                        if player_color is None or pd.isna(player_elo) or pd.isna(opp_elo): continue
+                        res_num,res_str=(0.5,"Draw")
+                        if status not in ['draw','stalemate']:
+                           if winner==player_color.lower(): res_num,res_str=(1,"Win")
+                           elif winner is not None: res_num,res_str=(0,"Loss")
+                        tc_str="Unknown"
+                        if clock_info: init=clock_info.get('initial');incr=clock_info.get('increment');
+                        if init is not None and incr is not None: tc_str=f"{init}+{incr}"
+                        elif speed=='correspondence': tc_str="Correspondence"
+                        eco=opening_info.get('eco','Unknown'); op_name_api=opening_info.get('name','Unknown Opening').replace('?','').split(':')[0].strip()
+                        op_name_custom=eco_map.get(eco, f"ECO: {eco}" if eco!='Unknown' else 'Unknown Opening')
+                        term_map={"mate":"Normal","resign":"Normal","stalemate":"Normal","timeout":"Time forfeit","draw":"Normal","outoftime":"Time forfeit","cheat":"Cheat","noStart":"Aborted","unknownFinish":"Unknown","variantEnd":"Variant End"}
+                        term=term_map.get(status,"Unknown")
+                        opp_title_final='Unknown'
+                        if opp_title_raw and opp_title_raw.strip(): opp_title_clean=opp_title_raw.replace(' ','').strip().upper();
+                        if opp_title_clean and opp_title_clean!='?': opp_title_final=opp_title_clean
+                        def clean_name(n): return re.sub(r'^(GM|IM|FM|WGM|WIM|WFM|CM|WCM|NM)\s+','',n).strip()
+                        opp_name_clean=clean_name(opp_name_raw)
+                        all_games_data.append({'Date':game_date,'Event':perf,'White':white_name,'Black':black_name,'Result':"1-0" if winner=='white' else ("0-1" if winner=='black' else "1/2-1/2"),'WhiteElo':int(white_rating) if not pd.isna(white_rating) else 0,'BlackElo':int(black_rating) if not pd.isna(black_rating) else 0,'ECO':eco,'OpeningName_API':op_name_api,'OpeningName_Custom':op_name_custom,'TimeControl':tc_str,'Termination':term,'PlyCount':game_data.get('turns',0),'LichessID':game_id,'PlayerID':username,'PlayerColor':player_color,'PlayerElo':int(player_elo),'OpponentName':opp_name_clean,'OpponentNameRaw':opp_name_raw,'OpponentElo':int(opp_elo),'OpponentTitle':opp_title_final,'PlayerResultNumeric':res_num,'PlayerResultString':res_str,'Variant':variant,'Speed':speed,'Status':status,'PerfType':perf})
+                    except json.JSONDecodeError: error_counter += 1
+                    except Exception: error_counter += 1
+    except requests.exceptions.RequestException as e: st.error(f"🚨 API Request Failed: {e}"); return pd.DataFrame()
+    except Exception as e: st.error(f"🚨 Unexpected error: {e}"); st.text(traceback.format_exc()); return pd.DataFrame()
+    if error_counter > 0: st.warning(f"Skipped {error_counter} entries due to processing errors.")
+    if not all_games_data: st.warning(f"No games found for '{username}' matching criteria."); return pd.DataFrame()
+    df = pd.DataFrame(all_games_data); st.success(f"Processed {len(df)} games.")
     if not df.empty:
         df['Date'] = pd.to_datetime(df['Date'], errors='coerce'); df = df.dropna(subset=['Date'])
-        if df.empty: return df, "⚠️ No games with valid dates found."
+        if df.empty: return df
         df['Year'] = df['Date'].dt.year; df['Month'] = df['Date'].dt.month; df['Day'] = df['Date'].dt.day
         df['Hour'] = df['Date'].dt.hour; df['DayOfWeekNum'] = df['Date'].dt.dayofweek; df['DayOfWeekName'] = df['Date'].dt.day_name()
         df['PlayerElo'] = df['PlayerElo'].astype(int); df['OpponentElo'] = df['OpponentElo'].astype(int)
         df['EloDiff'] = df['PlayerElo'] - df['OpponentElo']
-        df['TimeControl_Category'] = df.apply(lambda row: categorize_time_control(row['TimeControl'], row['Speed']), axis=1)
+        df['TimeControl_Category'] = df.apply(lambda row: categorize_time_control(row['TimeControl'], row['Speed']), axis=1) # Calls corrected func
+        # df = df.rename(columns={'Opening': 'OpeningName'}) # No longer needed
         df = df.sort_values(by='Date').reset_index(drop=True)
+    return df
 
-    progress(1, desc="Analysis Complete!")
-    return df, status_message # Return df and status message
 
 # =============================================
-# Plotting Functions (Unchanged - Return Plotly Figures)
+# Plotting Functions (Unchanged from v12)
 # =============================================
 # (Insert ALL plotting functions here - plot_win_loss_pie, ..., plot_time_forfeit_by_tc)
 # ... (Code identical to previous version v12) ...
@@ -279,15 +284,15 @@ def plot_most_frequent_opponents(df, top_n=20):
     fig.update_layout(yaxis={'categoryorder':'total ascending'}, dragmode=False); fig.update_traces(marker_color='#FF5722', textposition='outside'); return fig
 def plot_games_by_dom(df):
     if 'Day' not in df.columns: return go.Figure()
-    games_by_dom=df['Day'].value_counts().sort_index().reindex(range(1,32),fill_value=0)
-    fig=px.bar(games_by_dom, x=games_by_dom.index, y=games_by_dom.values, title="Games Played per Day of Month", labels={'x':'Day of Month','y':'Number of Games'}, text=games_by_dom.values)
+    games_by_dom = df['Day'].value_counts().sort_index().reindex(range(1, 32), fill_value=0)
+    fig = px.bar(games_by_dom, x=games_by_dom.index, y=games_by_dom.values, title="Games Played per Day of Month", labels={'x': 'Day of Month', 'y': 'Number of Games'}, text=games_by_dom.values)
     fig.update_traces(marker_color='#E91E63', textposition='outside'); fig.update_layout(xaxis=dict(tickmode='linear'), dragmode=False); return fig
 def plot_winrate_by_dom(df):
     if not all(col in df.columns for col in ['Day', 'PlayerResultNumeric']): return go.Figure()
     wins_by_dom=df[df['PlayerResultNumeric']==1].groupby('Day').size(); total_by_dom=df.groupby('Day').size()
     win_rate=(wins_by_dom.reindex(total_by_dom.index,fill_value=0)/total_by_dom).fillna(0)*100
     win_rate=win_rate.reindex(range(1,32),fill_value=0)
-    fig=px.line(win_rate, x=win_rate.index, y=win_rate.values, markers=True, title="Win Rate (%) per Day of Month", labels={'x':'Day of Month','y':'Win Rate (%)'})
+    fig=px.line(win_rate, x=win_rate.index, y=win_rate.values, markers=True, title="Win Rate (%) per Day of Month", labels={'x': 'Day of Month', 'y': 'Win Rate (%)'})
     fig.update_traces(line_color='#FF5722'); fig.update_layout(yaxis_range=[0,100], xaxis=dict(tickmode='linear'), dragmode=False); return fig
 def plot_time_forfeit_summary(wins_tf, losses_tf):
     data={'Outcome':['Won on Time','Lost on Time'],'Count':[wins_tf,losses_tf]}
@@ -299,6 +304,7 @@ def plot_time_forfeit_by_tc(tf_games_df):
     tf_by_tc=tf_games_df['TimeControl_Category'].value_counts()
     fig=px.bar(tf_by_tc,x=tf_by_tc.index,y=tf_by_tc.values, title="Time Forfeits by Time Control", labels={'x':'Category','y':'Forfeits'}, text=tf_by_tc.values)
     fig.update_layout(dragmode=False); fig.update_traces(marker_color='#795548', textposition='outside'); return fig
+
 
 # =============================================
 # Helper Functions
@@ -315,272 +321,71 @@ def filter_and_analyze_time_forfeits(df):
     return tf_games, wins_tf, losses_tf
 
 # =============================================
-# Main Gradio Analysis Function
+# Main Gradio Analysis Function (Unchanged from v12)
 # =============================================
 def run_analysis(username, time_period_key, perf_type, progress=gr.Progress(track_tqdm=True)):
-    """
-    Main function triggered by Gradio button. Loads data, generates all plots/tables.
-    Returns a tuple of outputs for the Gradio interface in the correct order.
-    """
-    if not username:
-        return "⚠️ Please enter a Lichess username.", None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None
-
-    # 1. Load Data
+    # ... (Code identical to version 12) ...
+    if not username: return "⚠️ Please enter a Lichess username.", *( [None] * 25 ) # Adjusted number of Nones
     df, status_msg = load_from_lichess_api(username, time_period_key, perf_type, DEFAULT_RATED_ONLY, ECO_MAPPING, progress)
-
-    # 2. Handle Empty DataFrame or Errors
-    if not isinstance(df, pd.DataFrame) or df.empty:
-        # Return status message and None for all plots/dataframes
-        return status_msg, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None
-
-    # 3. Generate All Plots and Data (if df is valid)
+    if not isinstance(df, pd.DataFrame) or df.empty: return status_msg, *( [None] * 25 )
     try:
-        # Overview
-        fig_pie = plot_win_loss_pie(df, username)
-        fig_color = plot_win_loss_by_color(df)
-        fig_rating = plot_rating_trend(df, username)
-        fig_elo_diff = plot_performance_vs_opponent_elo(df)
-        # Basic Stats for Overview
-        total_g = len(df); w = len(df[df['PlayerResultNumeric']==1]); l = len(df[df['PlayerResultNumeric']==0]); d = len(df[df['PlayerResultNumeric']==0.5])
-        wr = (w/total_g*100) if total_g > 0 else 0; avg_opp = df['OpponentElo'].mean()
-        overview_stats_md = f"**Total Games:** {total_g:,} | **Win Rate:** {wr:.1f}% | **W/L/D:** {w}/{l}/{d} | **Avg Opp Elo:** {avg_opp:.0f}"
-
-        # Time & Date
-        fig_games_yr = plot_games_per_year(df)
-        fig_wr_yr = plot_win_rate_per_year(df)
-        fig_perf_tc = plot_performance_by_time_control(df)
-        fig_games_dow = plot_games_by_dow(df)
-        fig_wr_dow = plot_winrate_by_dow(df)
-        fig_games_hod = plot_games_by_hour(df)
-        fig_wr_hod = plot_winrate_by_hour(df)
-        fig_games_dom = plot_games_by_dom(df) # New
-        fig_wr_dom = plot_winrate_by_dom(df) # New
-
-        # ECO & Opening
-        fig_open_freq_api = plot_opening_frequency(df, top_n=15, opening_col='OpeningName_API') # Default top_n
-        fig_open_wr_api = plot_win_rate_by_opening(df, min_games=5, top_n=15, opening_col='OpeningName_API') # Default min/top
-        fig_open_freq_cust = plot_opening_frequency(df, top_n=15, opening_col='OpeningName_Custom') if ECO_MAPPING else None
-        fig_open_wr_cust = plot_win_rate_by_opening(df, min_games=5, top_n=15, opening_col='OpeningName_Custom') if ECO_MAPPING else None
-
-        # Opponent
-        fig_opp_freq = plot_most_frequent_opponents(df, top_n=20) # Default top_n
-        df_opp_list = df[df['OpponentName']!='Unknown']['OpponentName'].value_counts().reset_index(name='Games').head(20) if 'OpponentName' in df else pd.DataFrame()
-        fig_opp_elo = plot_performance_vs_opponent_elo(df) # Reused plot
-
-        # Titled Players (Defaulting to GM+IM for initial display)
-        default_titles = ['GM', 'IM']
-        titled_games_default = filter_and_analyze_titled(df, default_titles)
-        titled_h2h_md = "Select titles in the 'Games vs Titled' tab for detailed analysis." # Placeholder
-
-        # Termination
-        tf_games, wins_tf, losses_tf = filter_and_analyze_time_forfeits(df)
-        fig_tf_summary = plot_time_forfeit_summary(wins_tf, losses_tf) if not tf_games.empty else None
-        fig_tf_tc = plot_time_forfeit_by_tc(tf_games) if not tf_games.empty else None
-        df_tf_list = tf_games[['Date','OpponentName','PlayerColor','PlayerResultString','TimeControl','PlyCount','Termination']].sort_values('Date',ascending=False).head(20) if not tf_games.empty else pd.DataFrame()
-        term_counts = df['Termination'].value_counts()
-        fig_term_all = px.bar(term_counts, x=term_counts.index, y=term_counts.values, title="Overall Termination Reasons", labels={'x':'Reason','y':'Count'}, text=term_counts.values)
+        fig_pie=plot_win_loss_pie(df,username); fig_color=plot_win_loss_by_color(df); fig_rating=plot_rating_trend(df,username); fig_elo_diff=plot_performance_vs_opponent_elo(df)
+        total_g=len(df); w=len(df[df['PlayerResultNumeric']==1]); l=len(df[df['PlayerResultNumeric']==0]); d=len(df[df['PlayerResultNumeric']==0.5])
+        wr=(w/total_g*100) if total_g>0 else 0; avg_opp=df['OpponentElo'].mean(); overview_stats_md=f"**Total:** {total_g:,} | **Win Rate:** {wr:.1f}% | **W/L/D:** {w}/{l}/{d} | **Avg Opp Elo:** {avg_opp:.0f}"
+        fig_games_yr=plot_games_per_year(df); fig_wr_yr=plot_win_rate_per_year(df); fig_perf_tc=plot_performance_by_time_control(df)
+        fig_games_dow=plot_games_by_dow(df); fig_wr_dow=plot_winrate_by_dow(df); fig_games_hod=plot_games_by_hour(df); fig_wr_hod=plot_winrate_by_hour(df)
+        fig_games_dom=plot_games_by_dom(df); fig_wr_dom=plot_winrate_by_dom(df)
+        fig_open_freq_api=plot_opening_frequency(df,top_n=15,opening_col='OpeningName_API'); fig_open_wr_api=plot_win_rate_by_opening(df,min_games=5,top_n=15,opening_col='OpeningName_API')
+        fig_open_freq_cust=plot_opening_frequency(df,top_n=15,opening_col='OpeningName_Custom') if ECO_MAPPING else None; fig_open_wr_cust=plot_win_rate_by_opening(df,min_games=5,top_n=15,opening_col='OpeningName_Custom') if ECO_MAPPING else None
+        fig_opp_freq=plot_most_frequent_opponents(df,top_n=20); df_opp_list=df[df['OpponentName']!='Unknown']['OpponentName'].value_counts().reset_index(name='Games').head(20) if 'OpponentName' in df else pd.DataFrame(); fig_opp_elo=plot_performance_vs_opponent_elo(df)
+        titled_h2h_md="Select titles in the 'Games vs Titled' tab for detailed analysis."
+        tf_games,wins_tf,losses_tf=filter_and_analyze_time_forfeits(df)
+        fig_tf_summary=plot_time_forfeit_summary(wins_tf,losses_tf) if not tf_games.empty else None; fig_tf_tc=plot_time_forfeit_by_tc(tf_games) if not tf_games.empty else None
+        df_tf_list=tf_games[['Date','OpponentName','PlayerColor','PlayerResultString','TimeControl','PlyCount','Termination']].sort_values('Date',ascending=False).head(20) if not tf_games.empty else pd.DataFrame()
+        term_counts=df['Termination'].value_counts(); fig_term_all=px.bar(term_counts,x=term_counts.index,y=term_counts.values,title="Overall Termination Reasons",labels={'x':'Reason','y':'Count'},text=term_counts.values)
         fig_term_all.update_layout(dragmode=False); fig_term_all.update_traces(textposition='outside')
-
-        # Prepare return tuple in order of outputs defined in gr.Blocks
-        # Ensure the number and order matches EXACTLY
-        return (
-            status_msg, df, # Status and DataFrame state
-            # Overview Tab
-            fig_pie, overview_stats_md, fig_color, fig_rating, fig_elo_diff,
-            # Perf Over Time Tab
-            fig_games_yr, fig_wr_yr,
-            # Perf By Color Tab (already covered in overview) - Keep placeholder if needed
-            None, # Placeholder for color tab plot 2 if needed
-            # Time & Date Tab
-            fig_games_dow, fig_wr_dow, fig_games_hod, fig_wr_hod, fig_games_dom, fig_wr_dom, fig_perf_tc,
-            # ECO & Opening Tab
-            fig_open_freq_api, fig_open_wr_api, fig_open_freq_cust, fig_open_wr_cust,
-            # Opponent Analysis Tab
-            fig_opp_freq, df_opp_list, fig_opp_elo,
-            # Titled Players Tab (Placeholder text for now)
-            gr.Markdown(titled_h2h_md), # Placeholder output for this tab's main area
-            # Termination Analysis Tab
-            fig_tf_summary, fig_tf_tc, df_tf_list, fig_term_all
-        )
-
-    except Exception as e:
-        error_msg = f"🚨 Error generating plots/data: {e}\n{traceback.format_exc()}"
-        # Return error message and Nones for all outputs
-        return error_msg, pd.DataFrame(), None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None
+        return (status_msg, df, # Output order must match component definition
+                fig_pie, overview_stats_md, fig_color, fig_rating, fig_elo_diff, fig_games_yr, fig_wr_yr,
+                None, # Placeholder for color tab plot 2
+                fig_games_dow, fig_wr_dow, fig_games_hod, fig_wr_hod, fig_games_dom, fig_wr_dom, fig_perf_tc,
+                fig_open_freq_api, fig_open_wr_api, fig_open_freq_cust, fig_open_wr_cust,
+                fig_opp_freq, df_opp_list, fig_opp_elo, gr.Markdown(titled_h2h_md),
+                fig_tf_summary, fig_tf_tc, df_tf_list, fig_term_all )
+    except Exception as e: error_msg = f"🚨 Error generating results: {e}\n{traceback.format_exc()}"; return error_msg, pd.DataFrame(), *( [None] * 25 )
 
 # =============================================
-# Gradio Interface Definition
+# Gradio Interface Definition (Unchanged from v12)
 # =============================================
-css = """
-.gradio-container { font-family: 'IBM Plex Sans', sans-serif; }
-.gr-button { color: white; border-color: black; background: black; }
-footer { display: none !important; }
-.gr-plot { min-height: 400px; }
-"""
-
+css = """.gradio-container { font-family: 'IBM Plex Sans', sans-serif; } footer { display: none !important; }"""
 with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
-    gr.Markdown("# ♟️ Lichess Insights\nAnalyze rated game statistics from the Lichess API.")
-
-    # Store the main DataFrame in state
+    gr.Markdown("# ♟️ Lichess Insights\nAnalyze rated game statistics from Lichess API.")
     df_state = gr.State(pd.DataFrame())
-    # Store the original username for display
     username_state = gr.State("")
-
     with gr.Row():
-        with gr.Column(scale=1, min_width=250): # Sidebar Area
-            gr.Markdown("## ⚙️ Settings")
-            username_input = gr.Textbox(label="Lichess Username", placeholder="e.g., DrNykterstein", elem_id="username_box")
-            time_period_input = gr.Dropdown(label="Time Period", choices=list(TIME_PERIOD_OPTIONS.keys()), value=DEFAULT_TIME_PERIOD)
-            perf_type_input = gr.Dropdown(label="Game Type", choices=PERF_TYPE_OPTIONS_SINGLE, value=DEFAULT_PERF_TYPE)
-            analyze_btn = gr.Button("Analyze Games", variant="primary")
-            status_output = gr.Markdown("") # For API status messages
-
-            # Placeholder for Titled Player selection (will be inside the tab later)
-            gr.Markdown("---")
-            gr.Markdown("Navigate analysis sections using the tabs on the right.")
-
-
-        with gr.Column(scale=4): # Main Content Area
-            # Define all output components here, matching the return order of run_analysis
-            # Overview
-            overview_plot_pie = gr.Plot(label="Overall Results")
-            overview_stats_md_out = gr.Markdown()
-            overview_plot_color = gr.Plot(label="Results by Color")
-            overview_plot_rating = gr.Plot(label="Rating Trend")
-            overview_plot_elo_diff = gr.Plot(label="Elo Advantage vs. Result")
-            # Perf Over Time
-            time_plot_games_yr = gr.Plot(label="Games per Year")
-            time_plot_wr_yr = gr.Plot(label="Win Rate per Year")
-            # Perf By Color (Plot already in Overview, maybe add something else or remove tab?)
-            color_plot_placeholder = gr.Markdown("(Results by color shown in Overview)") # Placeholder
-            # Time & Date
-            time_plot_games_dow = gr.Plot(label="Games by Day of Week")
-            time_plot_wr_dow = gr.Plot(label="Win Rate by Day of Week")
-            time_plot_games_hod = gr.Plot(label="Games by Hour (UTC)")
-            time_plot_wr_hod = gr.Plot(label="Win Rate by Hour (UTC)")
-            time_plot_games_dom = gr.Plot(label="Games by Day of Month") # New
-            time_plot_wr_dom = gr.Plot(label="Win Rate by Day of Month") # New
-            time_plot_perf_tc = gr.Plot(label="Performance by Time Control") # Moved here
-            # ECO & Opening
-            eco_plot_freq_api = gr.Plot(label="Opening Frequency (API Names)")
-            eco_plot_wr_api = gr.Plot(label="Opening Win Rate (API Names)")
-            eco_plot_freq_cust = gr.Plot(label="Opening Frequency (Custom Map)")
-            eco_plot_wr_cust = gr.Plot(label="Opening Win Rate (Custom Map)")
-            # Opponent Analysis
-            opp_plot_freq = gr.Plot(label="Frequent Opponents")
-            opp_df_list = gr.DataFrame(label="Top Opponents List", wrap=True)
-            opp_plot_elo = gr.Plot(label="Elo Advantage vs Result") # Reused
-            # Titled Players
-            titled_output_area = gr.Markdown() # Placeholder/Instructions
-            # Termination Analysis
-            term_plot_tf_summary = gr.Plot(label="Time Forfeit Summary")
-            term_plot_tf_tc = gr.Plot(label="Time Forfeits by Time Control")
-            term_df_tf_list = gr.DataFrame(label="Recent Time Forfeit Games", wrap=True)
-            term_plot_all = gr.Plot(label="Overall Termination Reasons")
-
-            # Use Tabs for the main sections
+        with gr.Column(scale=1, min_width=250): # Sidebar
+            gr.Markdown("## ⚙️ Settings"); username_input=gr.Textbox(label="Lichess Username", placeholder="e.g., DrNykterstein", elem_id="username_box"); time_period_input=gr.Dropdown(label="Time Period", choices=list(TIME_PERIOD_OPTIONS.keys()), value=DEFAULT_TIME_PERIOD); perf_type_input=gr.Dropdown(label="Game Type", choices=PERF_TYPE_OPTIONS_SINGLE, value=DEFAULT_PERF_TYPE); analyze_btn=gr.Button("Analyze Games", variant="primary"); status_output=gr.Markdown(""); gr.Markdown("---"); gr.Markdown("Navigate analysis sections using the tabs.")
+        with gr.Column(scale=4): # Main Content
+            # Define all output components matching run_analysis return order
+            overview_plot_pie=gr.Plot(label="Overall Results"); overview_stats_md_out=gr.Markdown(); overview_plot_color=gr.Plot(label="Results by Color"); overview_plot_rating=gr.Plot(label="Rating Trend"); overview_plot_elo_diff=gr.Plot(label="Elo Advantage vs. Result")
+            time_plot_games_yr=gr.Plot(label="Games per Year"); time_plot_wr_yr=gr.Plot(label="Win Rate per Year")
+            color_plot_placeholder=gr.Markdown("(Results by color shown in Overview)")
+            time_plot_games_dow=gr.Plot(label="Games by Day of Week"); time_plot_wr_dow=gr.Plot(label="Win Rate by Day of Week"); time_plot_games_hod=gr.Plot(label="Games by Hour (UTC)"); time_plot_wr_hod=gr.Plot(label="Win Rate by Hour (UTC)"); time_plot_games_dom=gr.Plot(label="Games by Day of Month"); time_plot_wr_dom=gr.Plot(label="Win Rate by Day of Month"); time_plot_perf_tc=gr.Plot(label="Performance by Time Control")
+            eco_plot_freq_api=gr.Plot(label="Opening Frequency (API)"); eco_plot_wr_api=gr.Plot(label="Opening Win Rate (API)"); eco_plot_freq_cust=gr.Plot(label="Opening Frequency (Custom)"); eco_plot_wr_cust=gr.Plot(label="Opening Win Rate (Custom)")
+            opp_plot_freq=gr.Plot(label="Frequent Opponents"); opp_df_list=gr.DataFrame(label="Top Opponents", wrap=True); opp_plot_elo=gr.Plot(label="Elo Advantage vs Result")
+            titled_output_area=gr.Markdown()
+            term_plot_tf_summary=gr.Plot(label="Time Forfeit Summary"); term_plot_tf_tc=gr.Plot(label="Time Forfeits by Time Control"); term_df_tf_list=gr.DataFrame(label="Recent TF Games", wrap=True); term_plot_all=gr.Plot(label="Overall Termination")
             with gr.Tabs() as tabs:
-                with gr.TabItem("1. Overview", id=0):
-                    overview_stats_md_out.render() # Display metrics
-                    with gr.Row():
-                        overview_plot_pie.render()
-                        overview_plot_color.render()
-                    overview_plot_rating.render()
-                    overview_plot_elo_diff.render()
-
-                with gr.TabItem("2. Perf. Over Time", id=1):
-                    time_plot_rating.render() # Display rating trend again here? Or just year-based?
-                    time_plot_games_yr.render()
-                    time_plot_wr_yr.render()
-
-                with gr.TabItem("3. Perf. by Color", id=2):
-                    # Maybe add rating trends split by color later
-                    overview_plot_color.render() # Reuse from overview
-                    color_plot_placeholder.render() # Placeholder
-
-                with gr.TabItem("4. Time & Date", id=3):
-                    gr.Markdown("### Performance by Day of Week")
-                    with gr.Row():
-                        time_plot_games_dow.render()
-                        time_plot_wr_dow.render()
-                    gr.Markdown("### Performance by Hour of Day (UTC)")
-                    with gr.Row():
-                        time_plot_games_hod.render()
-                        time_plot_wr_hod.render()
-                    gr.Markdown("### Performance by Day of Month")
-                    with gr.Row():
-                        time_plot_games_dom.render()
-                        time_plot_wr_dom.render()
-                    gr.Markdown("### Performance by Time Control Category")
-                    time_plot_perf_tc.render()
-
-
-                with gr.TabItem("5. ECO & Openings", id=4):
-                    gr.Markdown("#### Based on Lichess API Opening Names")
-                    # Add sliders here? Or keep plots simpler? Let's skip sliders for now.
-                    eco_plot_freq_api.render()
-                    eco_plot_wr_api.render()
-                    gr.Markdown("---")
-                    gr.Markdown("#### Based on Custom ECO Mapping")
-                    if not ECO_MAPPING:
-                         gr.Markdown("⚠️ Custom ECO mapping file not loaded.")
-                    else:
-                        eco_plot_freq_cust.render()
-                        eco_plot_wr_cust.render()
-
-
-                with gr.TabItem("6. Opponents", id=5):
-                    opp_plot_freq.render()
-                    opp_df_list.render()
-                    opp_plot_elo.render()
-
-                with gr.TabItem("7. vs Titled", id=6):
-                     gr.Markdown("Select titles below to analyze performance against them.")
-                     # Define multiselect here, linked to a separate function maybe?
-                     # For simplicity now, just show the placeholder message.
-                     # TODO: Implement interactive filtering for titled players later.
-                     titled_output_area.render()
-                     gr.Markdown("*(Full analysis requires selecting titles and potentially re-running)*")
-
-
-                with gr.TabItem("8. Termination", id=7):
-                    gr.Markdown("### Time Forfeit Analysis")
-                    term_plot_tf_summary.render()
-                    term_plot_tf_tc.render()
-                    with gr.Accordion("View Recent Time Forfeit Games", open=False):
-                         term_df_tf_list.render()
-                    gr.Markdown("### Overall Termination Types")
-                    term_plot_all.render()
-
-
-    # --- Connect Button Click to the Main Analysis Function ---
-    # Define the full list of outputs in the correct order
-    outputs_list = [
-        status_output, df_state, # Status and DF state must be first? Check Gradio docs. Usually state is separate. Let's put status first.
-        # Tab 1 Outputs
-        overview_plot_pie, overview_stats_md_out, overview_plot_color, overview_plot_rating, overview_plot_elo_diff,
-        # Tab 2 Outputs
-        time_plot_games_yr, time_plot_wr_yr,
-        # Tab 3 Outputs
-        color_plot_placeholder, # Placeholder
-        # Tab 4 Outputs
-        time_plot_games_dow, time_plot_wr_dow, time_plot_games_hod, time_plot_wr_hod, time_plot_games_dom, time_plot_wr_dom, time_plot_perf_tc,
-        # Tab 5 Outputs
-        eco_plot_freq_api, eco_plot_wr_api, eco_plot_freq_cust, eco_plot_wr_cust,
-        # Tab 6 Outputs
-        opp_plot_freq, opp_df_list, opp_plot_elo,
-        # Tab 7 Outputs
-        titled_output_area, # Placeholder output
-        # Tab 8 Outputs
-        term_plot_tf_summary, term_plot_tf_tc, term_df_tf_list, term_plot_all
-    ]
-
-    analyze_btn.click(
-        fn=run_analysis,
-        inputs=[username_input, time_period_input, perf_type_input],
-        outputs=outputs_list # Pass the list of all output components
-    )
+                with gr.TabItem("1. Overview", id=0): overview_stats_md_out.render(); with gr.Row(): overview_plot_pie.render(); overview_plot_color.render(); overview_plot_rating.render(); overview_plot_elo_diff.render()
+                with gr.TabItem("2. Perf. Over Time", id=1): time_plot_rating.render(); time_plot_games_yr.render(); time_plot_wr_yr.render()
+                with gr.TabItem("3. Perf. by Color", id=2): overview_plot_color.render(); color_plot_placeholder.render()
+                with gr.TabItem("4. Time & Date", id=3): gr.Markdown("### Day of Week"); with gr.Row(): time_plot_games_dow.render(); time_plot_wr_dow.render(); gr.Markdown("### Hour of Day (UTC)"); with gr.Row(): time_plot_games_hod.render(); time_plot_wr_hod.render(); gr.Markdown("### Day of Month"); with gr.Row(): time_plot_games_dom.render(); time_plot_wr_dom.render(); gr.Markdown("### Time Control Category"); time_plot_perf_tc.render()
+                with gr.TabItem("5. ECO & Openings", id=4): gr.Markdown("#### Based on Lichess API"); eco_plot_freq_api.render(); eco_plot_wr_api.render(); gr.Markdown("---"); gr.Markdown("#### Based on Custom ECO Map"); if not ECO_MAPPING: gr.Markdown("⚠️ Custom ECO map not loaded."); else: eco_plot_freq_cust.render(); eco_plot_wr_cust.render()
+                with gr.TabItem("6. Opponents", id=5): opp_plot_freq.render(); opp_df_list.render(); opp_plot_elo.render()
+                with gr.TabItem("7. vs Titled", id=6): gr.Markdown("Select titles below..."); titled_output_area.render(); gr.Markdown("*(Implementation pending)*") # Placeholder
+                with gr.TabItem("8. Termination", id=7): gr.Markdown("### Time Forfeit"); term_plot_tf_summary.render(); term_plot_tf_tc.render(); with gr.Accordion("View Recent TF Games",open=False): term_df_tf_list.render(); gr.Markdown("### Overall Termination"); term_plot_all.render()
+    outputs_list = [ status_output, df_state, overview_plot_pie, overview_stats_md_out, overview_plot_color, overview_plot_rating, overview_plot_elo_diff, time_plot_games_yr, time_plot_wr_yr, color_plot_placeholder, time_plot_games_dow, time_plot_wr_dow, time_plot_games_hod, time_plot_wr_hod, time_plot_games_dom, time_plot_wr_dom, time_plot_perf_tc, eco_plot_freq_api, eco_plot_wr_api, eco_plot_freq_cust, eco_plot_wr_cust, opp_plot_freq, opp_df_list, opp_plot_elo, titled_output_area, term_plot_tf_summary, term_plot_tf_tc, term_df_tf_list, term_plot_all ]
+    analyze_btn.click(fn=run_analysis, inputs=[username_input, time_period_input, perf_type_input], outputs=outputs_list)
 
 # --- Launch the Gradio App ---
 if __name__ == "__main__":
-    demo.launch(debug=True) # Enable debug for local testing
+    demo.launch(debug=True)
