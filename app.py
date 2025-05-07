@@ -464,7 +464,7 @@ def filter_and_analyze_time_forfeits(df):
 # =============================================
 def perform_full_analysis(username, time_period_key, perf_type, selected_titles_list, progress=gr.Progress(track_tqdm=True)):
     df, status_msg = load_from_lichess_api(username, time_period_key, perf_type, DEFAULT_RATED_ONLY, ECO_MAPPING, progress)
-    num_outputs = 30
+    num_outputs = 33  # Adjusted to match the actual number of outputs
     if not isinstance(df, pd.DataFrame) or df.empty:
         return status_msg, pd.DataFrame(), *([None] * (num_outputs - 2))
     try:
@@ -478,7 +478,9 @@ def perform_full_analysis(username, time_period_key, perf_type, selected_titles_
         d = len(df[df['PlayerResultNumeric'] == 0.5])
         wr = (w / total_g * 100) if total_g > 0 else 0
         avg_opp = df['OpponentElo'].mean()
-        overview_stats_md = f"**Total:** {total_g:,} | **WR:** {wr:.1f}% | **W/L/D:** {w}/{l}/{d} | **Avg Opp:** {avg_opp:.0f if not pd.isna(avg_opp) else 'N/A'}"
+        # Fixed formatting issue
+        avg_opp_display = f"{avg_opp:.0f}" if not pd.isna(avg_opp) else 'N/A'
+        overview_stats_md = f"**Total:** {total_g:,} | **WR:** {wr:.1f}% | **W/L/D:** {w}/{l}/{d} | **Avg Opp:** {avg_opp_display}"
         fig_games_yr = plot_games_per_year(df)
         fig_wr_yr = plot_win_rate_per_year(df)
         fig_perf_tc = plot_performance_by_time_control(df)
@@ -530,7 +532,7 @@ def perform_full_analysis(username, time_period_key, perf_type, selected_titles_
                 df_titled_h2h, fig_tf_summary, fig_tf_tc, df_tf_list, fig_term_all)
     except Exception as e:
         error_msg = f"🚨 Error generating results: {e}\n{traceback.format_exc()}"
-        return error_msg, pd.DataFrame(), *([None] * num_outputs)
+        return error_msg, pd.DataFrame(), *([None] * (num_outputs - 2))
 
 # =============================================
 # Gradio Interface Definition
